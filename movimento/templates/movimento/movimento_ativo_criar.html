@@ -1,0 +1,379 @@
+{% extends 'base_generic.html' %}
+{% load widget_tweaks %}
+
+{% block content %}
+<main>
+    <div class="container mt-5">
+        <div class="card shadow-sm mb-4">
+            <div class="card-body d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0 text-muted" style="font-size: 0.875rem;"><i class="bi bi-person-circle me-2"></i>Usuário logado:</h5>
+                <span class="badge bg-success" style="font-size: 0.875rem; font-weight: 300;">{{ user.username }} ({{ user.first_name }} {{ user.last_name }})</span>
+            </div>
+        </div>
+        <div class="card shadow-lg border-0">
+            <div class="card-header bg-success text-white text-center py-3 rounded-top-4">
+                <h2 class="mb-0">
+                <i class="bi bi-plus-circle fs-3" aria-hidden="true"></i> Adicionar Movimentação do Ativo
+                </h2>
+            </div>
+            <div class="card-body p-4">
+                <form id="formMovimento_ativo" method="POST" action="{% url 'criar_movimentacao_ativo' %}" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    {{ form.non_field_errors }}
+
+                    <!-- Linha 1 -->
+                    <div class="row g-3 mt-3">
+                        <div class="col-md-3">
+                            <label for="ativo" class="form-label fw-bold">
+                                <i class="bi bi-upc-scan me-1"></i> Código do Ativo
+                            </label>
+                            {{ form.ativo|add_class:"form-select fw-bold" |attr:"id:id_ativo" |attr:"title:Insira o código do ativo" |attr:"placeholder:Exemplo: ATV-1234" }}
+                        </div>
+                        <div class="col-md-3">
+                            <label for="status_anterior" class="form-label"><i class="bi bi-arrow-left-circle me-1"></i>Tipo de Movimentação (Anterior)</label>
+                            <!--<input type="hidden" name="status_anterior" id="id_status_anterior" value="em_uso">-->
+ 
+                            {{ form.status_anterior|add_class:"form-select" |attr:"id:id_status_anterior" |attr:"title:Escolha o tipo de movimentação" }}
+                        </div> 
+                      
+                        <div class="col-md-3">
+                            <label for="status_novo" class="form-label"><i class="bi bi-plus-circle me-1"></i>Tipo de Movimentação (Nova)</label>
+                            {{ form.status_novo|add_class:"form-select" |attr:"id:id_status_novo" |attr:"title:Escolha o tipo de movimentação" }}
+                        </div>  
+                        <div class="col-md-3">
+                            <label for="data" class="form-label">
+                                <i class="bi bi-calendar-event me-1"></i> Data de Lançamento
+                            </label>
+                            {{ form.data|add_class:"form-control" |attr:"readonly:true" |attr:'id:data' |attr:'style:background-color:#f0f0f0' |attr:'title:Data de lançamento (somente leitura)' }}
+                            {% for error in form.data.errors %}
+                                <div class="text-danger small">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                    </div>         
+
+                    <!-- Linha 2 -->
+                    <div class="row g-3 mt-3">
+                        <div class="col-md-3">
+                            <label for="codigo_produto" class="form-label"><i class="bi bi-123 me-1"></i>Código do Produto</label>
+                            <input type="text" id="codigo_produto" class="form-control" readonly title="Código do produto (somente leitura)">
+                        </div>  
+                        <div class="col-md-6">
+                            <label for="produto_nome" class="form-label"><i class="bi bi-card-list me-1"></i>Nome do Produto</label>
+                            <input type="text" id="produto_nome" class="form-control" readonly title="Nome do produto (somente leitura)">
+                        </div>
+                
+                        <div class="col-md-3">
+                            <label for="produto_IMEI_SN" class="form-label"><i class="bi bi-tags me-1"></i>IMEI - Número Serial</label>
+                            <input type="text" id="produto_IMEI_SN" class="form-control" readonly title="Número IMEI ou Serial (somente leitura)">                    
+                        </div>
+                    </div>
+
+                    <!-- Linha 3 -->
+                    <div class="row g-3 mt-3">
+                        <div class="col-md-4">
+                            <label for="local_anterior" class="form-label">
+                                <i class="bi bi-building me-1"></i> Departamento (Origem)
+                            </label>
+                            {{ form.local_anterior|add_class:"form-select" |attr:"title:Selecione a localização" }}
+                            <input type="hidden" id="hidden_local_anterior" name="local_anterior">
+                            {% for error in form.local_anterior.errors %}
+                                <div class="text-danger small">{{ error }}</div>
+                            {% endfor %}
+                        </div>  
+                        
+                        <div class="col-md-4">
+                            <label for="usuario_final" class="form-label">
+                                <i class="bi bi-person-circle me-1"></i> Usuário Final
+                            </label>
+                            {{ form.usuario_final|add_class:"form-control" }}
+                            {% for error in form.usuario_final.errors %}
+                                <div class="text-danger small">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="col-md-4">
+                            <label for="local_novo" class="form-label">
+                                <i class="bi bi-house-door me-1"></i> Departamento (Destino)
+                            </label>
+                            {{ form.local_novo|add_class:"form-select" |attr:"title:Selecione a localização" }}
+                            {% for error in form.local_novo.errors %}
+                                <div class="text-danger small">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <!-- Linha 4 -->
+                    <div class="row g-3 mt-3">
+                        <div class="col-md-4">
+                            <label for="usuario_responsavel" class="form-label">
+                                <i class="bi bi-person-lock me-1"></i> Usuario Responsável pela movimentação
+                            </label>
+                            {{ form.usuario_responsavel |attr:"readonly:true"|attr:'style:background-color:#f0f0f0' }}
+                            {% for error in form.usuario_responsavel.errors %}
+                                <div class="text-danger small">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="col-md-8">
+                            <label for="observacao" class="form-label">
+                                <i class="bi bi-exclamation-circle me-1"></i> Observação
+                            </label>
+                            {{ form.observacao|add_class:"form-control" }}
+                            {% for error in form.observacao.errors %}
+                                <div class="text-danger small">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <!-- Botões -->
+                    <div class="d-flex justify-content-end gap-2 mt-4">
+                        <a href="{% url 'listar_movimentacoes_ativo' %}" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left"></i> Voltar
+                        </a>
+                        <button type="submit" class="btn btn-success">
+                            <i class="bi bi-check-circle"></i> Salvar Movimentação
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    {% block scripts %}
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/luxon/3.4.3/luxon.min.js"></script>
+   
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Definindo as opções de status
+            const todasOpcoes = [
+                { value: 'ativo', text: 'Disponível' },
+                { value: 'em_uso', text: 'Alocado' },
+                { value: 'manutencao', text: 'Em Manutenção' },
+                { value: 'baixado', text: 'Baixado' }
+            ];
+
+            const opcoesDisponivel = [
+                { value: 'em_uso', text: 'Alocado' },
+                { value: 'manutencao', text: 'Em Manutenção' },
+                { value: 'baixado', text: 'Baixado' }
+            ];
+
+            const opcoesAlocadas = [
+                { value: 'ativo', text: 'Disponível' },
+                { value: 'manutencao', text: 'Em Manutenção' },
+                { value: 'baixado', text: 'Baixado' }
+            ];
+
+            const opcoesManutencao = [
+                { value: 'ativo', text: 'Disponível' },
+                { value: 'em_uso', text: 'Alocado' },                
+                { value: 'baixado', text: 'Baixado' }
+            ];
+
+            const opcoesBaixado = [
+                { value: 'ativo', text: 'Disponível' },
+                { value: 'em_uso', text: 'Alocado' },
+                { value: 'manutencao', text: 'Em Manutenção' }                
+            ];
+
+            // Garantir que os elementos existam antes de adicionar o evento
+            const statusAnterior = document.getElementById('id_status_anterior');
+            const statusNovo = document.getElementById('id_status_novo');
+
+            if (statusAnterior) {
+                console.log("Adicionando o evento de change no status_anterior...");
+                // Adicionar o evento de 'change' no status_anterior
+                statusAnterior.addEventListener('change', function () {
+                    const statusAnteriorValue = this.value;
+                    console.log("Status anterior foi alterado para:", statusAnteriorValue); // Log do valor selecionado
+                    atualizarOpcoesStatusNovo(); // Atualiza as opções de status_novo
+                });
+            }
+
+            // Inicializa as opções de status_novo quando a página carregar
+            atualizarOpcoesStatusNovo(); 
+
+            // Função para atualizar as opções de status novo com base no status anterior
+            function atualizarOpcoesStatusNovo() {
+                const statusAnterior = document.getElementById('id_status_anterior').value;
+                const statusNovo = document.getElementById('id_status_novo');
+
+                // Limpar as opções existentes
+                statusNovo.innerHTML = ''; // Remove todas as opções antigas
+
+                // Determinar as opções com base no status anterior
+                let opcoes;
+                if (statusAnterior === 'em_uso') {
+                    opcoes = opcoesAlocadas;
+                } else if (statusAnterior === 'ativo') {
+                    opcoes = opcoesDisponivel;
+                } else if (statusAnterior === 'manutencao') {
+                    opcoes = opcoesManutencao;
+                } else if (statusAnterior === 'baixado') {
+                    opcoes = opcoesBaixado;
+                } else {
+                    opcoes = todasOpcoes;
+                }
+
+                // Adicionar a opção padrão
+                let optionDefault = document.createElement('option');
+                optionDefault.value = "";
+                optionDefault.text = "Selecione";
+                statusNovo.appendChild(optionDefault);
+
+                // Adicionar as novas opções ao select
+                opcoes.forEach(function(opcao) {
+                    let option = document.createElement('option');
+                    option.value = opcao.value;
+                    option.text = opcao.text;
+                    statusNovo.appendChild(option);
+                });
+
+                console.log("Opções para o novo status:", opcoes); // Log para verificação
+            }
+
+            // Chama a função de atualizar as opções sempre que o valor de status_anterior mudar
+            document.getElementById('id_status_anterior').addEventListener('change', function() {
+                console.log("Status anterior selecionado:", this.value); // Verifica o valor selecionado
+                atualizarOpcoesStatusNovo(); // Chama a função de atualização das opções
+            });
+
+            // Inicializa as opções ao carregar a página
+           // document.addEventListener('DOMContentLoaded', function() {
+                //console.log("O script foi carregado com sucesso!");
+               // atualizarOpcoesStatusNovo(); // Atualiza as opções na carga inicial da página
+           // });
+
+        });
+
+    </script>       
+    {% endblock %}
+
+    {% block script_extra %}
+    <script>
+
+        $(document).ready(function () {
+            const selectCodigoAtivo = $("#id_ativo");
+            const campoDataLancamento = $("#data");
+            campoDataLancamento.removeAttr('readonly');
+            
+
+            function preencherDataHoje() {
+                try {
+                    // Obter a data atual com Luxon
+                    const dataHoje = luxon.DateTime.now();                  
+
+                    // Verificar se a data é válida
+                    if (dataHoje.isValid) {
+                        // Se válida, atribui o formato correto
+                        const dataFormatada = dataHoje.toISODate(); // 'yyyy-MM-dd'
+                        campoDataLancamento.val(dataFormatada);
+                    } else {
+                        // Se inválida, lançar um erro
+                        throw new Error("Data inválida com Luxon");
+                    }
+                } catch (e) {
+                    console.error(e); // Logar o erro para depuração
+
+                    // Caso ocorra um erro, usar o fallback
+                    const hoje = new Date();
+                    const fallback = hoje.toISOString().split('T')[0]; // Formato YYYY-MM-DD
+                    campoDataLancamento.val(fallback); // Atribui a data no campo
+                }
+            }
+
+            preencherDataHoje();
+            // Restaurar o atributo readonly após preencher a data
+            campoDataLancamento.attr('readonly', true);
+           
+
+            if (selectCodigoAtivo.length) {
+                selectCodigoAtivo.on('change', function () {
+                    const ativoId = $(this).val();
+                   
+                    if (ativoId) {
+                        fetch(`/movimento/get-dados-produto/?ativo_id=${ativoId}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            console.log(data);
+                            // Preenche os campos com os dados retornados
+                            // Preenche os campos com os dados retornados e torna os campos não editáveis
+                            $("#codigo_produto").val(data.codigo_produto || 'N/A').prop('readonly', true).css("background-color", "#f0f0f0");  // Preenche e aplica o fundo cinza
+                            $("#produto_nome").val(data.nome || 'N/A').prop('readonly', true).css("background-color", "#f0f0f0");  // Preenche e aplica o fundo cinza
+                            
+                            $("#id_status_anterior").val(data.status_atual || '').prop('readonly', true).trigger('change').css("background-color", "#f0f0f0");  // Desabilita o campo e aplica o fundo cinza
+                             
+                            
+
+                            // Verifica a categoria do ativo e preenche o campo de IMEI ou Número Serial
+                            let imeiSerialValue = '';
+
+                            // Verifica se a categoria é "celular", insensível a maiúsculas/minúsculas
+                            if (data.categoria && data.categoria.toLowerCase() === 'celular') {
+                                // Se for celular, usa o IMEI
+                                imeiSerialValue = data.imei || 'N/A';  // Caso o imei não exista, coloca 'N/A'
+                            } else {
+                                // Caso contrário, usa o número serial
+                                imeiSerialValue = data.numero_serial || 'N/A'; // Caso o numero_serial não exista, coloca 'N/A'
+                            }
+
+                            // Preenche o campo de IMEI/SN com base na categoria
+                            $("#produto_IMEI_SN").val(imeiSerialValue).prop('readonly', true).css("background-color", "#f0f0f0");
+
+                             
+                           // Preenche o campo local_anterior com o nome da localização
+                            if (data.localizacao_atual && data.localizacao_atual.nome) {
+                                // Verifica se o valor da localização já é uma opção
+                                let optionExists = $("#id_local_anterior option[value='" + data.localizacao.nome + "']").length > 0;
+
+                                // Se não for, cria a opção
+                                if (!optionExists) {
+                                    $("#id_local_anterior").append(new Option(data.localizacao_atual.nome, data.localizacao_atual.nome));
+                                }
+
+                                // Preenche o select com o nome da localização (mesmo que desabilitado)
+                                $("#id_local_anterior")
+                                    .val(data.localizacao_atual.nome)  // Preenche com o nome
+                                    .css("background-color", "#f0f0f0");  // Aplica a cor de fundo cinza
+
+                                // Preenche o campo hidden com o ID da localização
+                                $("#hidden_local_anterior").val(data.localizacao_atual.id);  // Armazena o id da localização no campo oculto
+                            } else {
+                                // Caso não haja localização, limpe os campos
+                                $("#id_local_anterior")
+                                    .val('')  // Limpa o nome
+                                    .css("background-color", "#f0f0f0");  // Aplica a cor de fundo cinza
+
+                                $("#hidden_local_anterior").val(''); // Limpa o campo oculto
+                            }
+                            
+                        })
+                        .catch(error => {
+                            console.error("Erro ao buscar dados do produto:", error);
+                            $("#codigo_produto").val('Erro').prop('readonly', true).css("background-color", "#f0f0f0");
+                            $("#produto_nome").val('Erro').prop('readonly', true).css("background-color", "#f0f0f0");
+                            $("#id_status_anterior").val('').prop('disabled', true).css("background-color", "#f0f0f0");
+                            $("#produto_IMEI_SN").val('Erro').prop('readonly', true).css("background-color", "#f0f0f0");
+                            $("#id_local_anterior").val('').prop('disabled', true).css("background-color", "#f0f0f0");
+                            campoDataLancamento.val(''); 
+                        });
+                    } else {
+                        // Limpa os campos se nenhum ativo for selecionado
+                            $("#codigo_produto").val('').prop('readonly', true).css("background-color", "#f0f0f0");
+                            $("#produto_nome").val('').prop('readonly', true).css("background-color", "#f0f0f0");
+                            $("#id_status_anterior").val('').prop('disabled', true).css("background-color", "#f0f0f0");
+                            $("#produto_IMEI_SN").val('').prop('readonly', true).css("background-color", "#f0f0f0");
+                            $("#id_local_anterior").val('').prop('disabled', true).css("background-color", "#f0f0f0");
+                            campoDataLancamento.val(''); 
+                    }
+
+                   
+                });
+            }
+        });
+       
+    </script>
+    {% endblock %}
+   
+
+</main>
+{% endblock %}

@@ -1,0 +1,157 @@
+{% extends "base_generic.html" %}
+{% load widget_tweaks %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="card shadow-sm mb-4">
+        <div class="card-body d-flex justify-content-between align-items-center">
+            <h5 class="card-title mb-0 text-muted" style="font-size: 0.875rem;"><i class="bi bi-person-circle me-2"></i>Usuário logado:</h5>
+            <span class="badge bg-warning text-dark" style="font-size: 0.875rem; font-weight: 300;">{{ user.username }} ({{ user.first_name }} {{ user.last_name }})</span>
+        </div>
+    </div>
+    <div class="card shadow-lg border-0">
+        <div class="card-header bg-warning text-dark text-center py-3">
+            <h2 class="mb-0">
+                <i class="bi bi-pencil-square me-2"></i> Editar Ficha Tecnica do Produto
+            </h2>
+        </div>
+        <div class="card-body p-4">
+            <form method="post" novalidate>
+                {% csrf_token %}
+                {{ form.non_field_errors }}
+
+                <!-- Seção da categoria -->
+                <fieldset class="border p-3 rounded mb-4">
+                    <legend class="float-none w-auto px-2 fs-6 text-muted">Informações da Ficha Tecnica</legend>
+                    <div class="mb-3">
+                        <label for="categoria" class="form-label">
+                            <i class="bi bi-tag me-1"></i> Categoria
+                        </label>
+                        {{ form.categoria|add_class:"form-control" }}
+                        {% for error in form.categoria.errors %}
+                            <div class="text-danger small">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="titulo" class="form-label">
+                            <i class="bi bi-card-heading me-1"></i> Título
+                        </label>
+                        {{ form.titulo|add_class:"form-control" }}
+                        {% for error in form.titulo.errors %}
+                            <div class="text-danger small">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="linha" class="form-label">
+                            <i class="bi bi-file-earmark me-1"></i> Linha
+                        </label>
+                        {{ form.linha|add_class:"form-control"|attr:"readonly" }}
+                        {% for error in form.linha.errors %}
+                            <div class="text-danger small">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="iconSearch" class="form-label">
+                            <i class="bi bi-search me-1"></i> Filtrar ícones
+                        </label>
+                        <input type="text" id="iconSearch" class="form-control mb-3" placeholder="Filtrar ícones..." />
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="icone_bootstrap" class="form-label">
+                            <i class="bi bi-image me-1"></i> Ícone Bootstrap
+                        </label>
+                        <div id="iconeContainer" class="form-control" style="max-height: 200px; overflow-y: auto;">
+                            <div class="d-flex flex-wrap" id="iconSelection">
+                                <!-- Ícones Bootstrap vão aparecer aqui -->
+                            </div>
+                            <input type="hidden" id="id_icone_bootstrap" name="icone_bootstrap" value="{{ form.icone_bootstrap.value|default_if_none:'' }}" />
+                        </div>
+                        {% for error in form.icone_bootstrap.errors %}
+                            <div class="text-danger small">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="placeholder" class="form-label">
+                            <i class="bi bi-textarea-resize me-1"></i> Placeholder
+                        </label>
+                        {{ form.placeholder|add_class:"form-control" }}
+                        {% for error in form.placeholder.errors %}
+                            <div class="text-danger small">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                </fieldset>
+
+                <div class="d-flex justify-content-end gap-2 mt-4">
+                    <a href="{% url 'fichatecnica_produto_listar' %}" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left"></i> Voltar
+                    </a>
+                    <button type="submit" class="btn btn-warning">
+                        <i class="bi bi-check-circle"></i> Salvar Alterações
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="{% static 'saima/js/bootstrap_icons.js' %}"></script>
+
+<script>
+    $(document).ready(function () {
+        // Array com os ícones do Bootstrap que você quer exibir
+        const iconContainer = $('#iconSelection');
+        const selectedIcon = "{{ form.icone_bootstrap.value }}";  // Pega o valor do ícone gravado
+
+        // Se o ícone gravado existe, exibe o nome do ícone selecionado no filtro
+        if (selectedIcon) {
+            $('#iconSearch').val(selectedIcon);  // Preenche o campo de busca com o nome do ícone gravado
+        }
+
+        // Gerar os ícones dinamicamente
+        bootstrapIcons.forEach(icon => {
+            const iconButton = $('<button>')
+                .addClass('btn btn-icon btn-light m-1')
+                .attr('type', 'button')
+                .attr('data-icon', icon)
+                .html(`<i class="bi ${icon}"></i>`)
+                .click(function() {
+                    // Quando o ícone for clicado, preenche o campo oculto com o nome do ícone
+                    $('#id_icone_bootstrap').val(icon);
+                    // Adiciona destaque ao ícone selecionado
+                    $('#iconSelection button').removeClass('active');
+                    $(this).addClass('active');
+                });
+
+            // Se o ícone for o selecionado, adiciona a classe "active"
+            if (icon === selectedIcon) {
+                iconButton.addClass('active');
+            }
+
+            iconContainer.append(iconButton);
+        });
+
+        // Filtro de ícones
+        $('#iconSearch').on('input', function() {
+            const searchValue = $(this).val().toLowerCase();
+            $('#iconSelection button').each(function() {
+                const iconClass = $(this).attr('data-icon').toLowerCase();
+                if (iconClass.indexOf(searchValue) !== -1) {
+                    $(this).show();
+                } else {
+                    $(this).hide();
+                }
+            });
+        });
+
+        // Ao carregar, já mostra os ícones correspondentes ao filtro pré-preenchido
+    $('#iconSearch').trigger('input');
+    });
+</script>
+
+{% endblock %}

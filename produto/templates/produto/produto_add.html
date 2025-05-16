@@ -1,0 +1,284 @@
+{% extends 'base_generic.html' %}
+{% load widget_tweaks %}
+
+{# ============================================ #
+   Autor: Wilton Loiola
+   Empresa: Projeto Integrador I
+   Módulo: Cadastro de Produto
+   Criação: 26/04/2025
+   Última Modificação: Inclusão da rotina de Adicionar Produto
+   Status: Em produção
+# ============================================ #}
+
+{% block content %}
+<main>
+    <div class="container mt-5">
+        <div class="card shadow-sm mb-4">
+          <div class="card-body d-flex justify-content-between align-items-center">
+            <h5 class="card-title mb-0 text-muted" style="font-size: 0.875rem;"><i class="bi bi-person-circle me-2"></i>Usuário logado:</h5>
+            <span class="badge bg-success" style="font-size: 0.875rem; font-weight: 300;">{{ user.username }} ({{ user.first_name }} {{ user.last_name }})</span>
+          </div>
+        </div>
+        <div class="card shadow-lg border-0" style="max-width: 1200px; margin: auto;">
+            <div class="card-header bg-success text-white text-center py-3">
+                <h2 class="mb-0"><i class="bi bi-plus-circle"></i> Adicionar Produto</h2>
+            </div>
+            <div class="card-body p-4">
+              <form id="formProduto" method="POST" enctype="multipart/form-data">
+                {% csrf_token %}            
+
+                <div class="row g-3 align-items-start">
+                  <!-- Código e Imagem -->
+                  <div class="row g-3">
+                    <div class="col-md-4">
+                        <label for="codigo_produto" class="form-label fw-bold fs-5">
+                            <i class="bi bi-upc-scan me-1"></i> Código do Produto
+                        </label>
+                        {{ form.codigo_produto|add_class:"form-control fw-bold fs-5"|attr:"readonly id:id_codigo_produto" }}
+                        {% for error in form.codigo_produto.errors %}
+                            <div class="text-danger small">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                    <div class="col-md-8">
+                        <label for="imagem" class="form-label">
+                            <i class="bi bi-image me-1"></i> Imagem
+                        </label>
+                        {{ form.imagem|add_class:"form-control"|attr:"id:imagem" }}
+                        {% for error in form.imagem.errors %}
+                            <div class="text-danger small">{{ error }}</div>
+                        {% endfor %}
+                        <img id="preview-img" src="" alt="Prévia da imagem" class="img-fluid d-none mt-3">
+                        <span id="imagemProdutoError" class="error-message"></span>
+                    </div>
+                </div>
+              </div>
+              <!-- Nome, Fabricante e Modelo -->
+              <div class="row g-3 mt-3">
+                  <div class="col-md-6">
+                      <label for="nome" class="form-label">
+                          <i class="bi bi-pencil-square me-1"></i> Nome
+                      </label>
+                      {{ form.nome|add_class:"form-control" }}
+                      {% for error in form.nome.errors %}
+                          <div class="text-danger small">{{ error }}</div>
+                      {% endfor %}
+                  </div>
+                  
+                  <div class="col-md-3">
+                      <label for="marca" class="form-label">
+                          <i class="bi bi-house-door me-1"></i> Marca
+                      </label>
+                      {{ form.marca|add_class:"form-control" }}
+                      {% for error in form.marca.errors %}
+                          <div class="text-danger small">{{ error }}</div>
+                      {% endfor %}
+                  </div>
+              
+                  <div class="col-md-3">
+                      <label for="modelo" class="form-label">
+                          <i class="bi bi-laptop me-1"></i> Modelo
+                      </label>
+                      {{ form.modelo|add_class:"form-control" }}
+                      {% for error in form.modelo.errors %}
+                          <div class="text-danger small">{{ error }}</div>
+                      {% endfor %}
+                  </div>
+              </div>
+              
+              <!-- Localização, Preço e Data de Aquisição -->
+              <div class="row g-3 mt-3">
+                  <div class="col-md-4">
+                      <label for="localizacao" class="form-label">
+                          <i class="bi bi-geo-alt me-1"></i> Localização
+                      </label>
+                      {{ form.localizacao|add_class:"form-select form-control" }}
+                      {% for error in form.localizacao.errors %}
+                          <div class="text-danger small">{{ error }}</div>
+                      {% endfor %}
+                  </div>
+                  <div class="col-md-4">
+                      <label for="preco" class="form-label">
+                          <i class="bi bi-cash-coin me-1"></i> Preço
+                      </label>
+                      {{ form.preco|add_class:"form-control" }}
+                      {% for error in form.preco.errors %}
+                          <div class="text-danger small">{{ error }}</div>
+                      {% endfor %}
+                  </div>
+                  <div class="col-md-4">
+                      <label for="data_aquisicao" class="form-label">
+                          <i class="bi bi-calendar-check me-1"></i> Data de Aquisição
+                      </label>
+                      {{ form.data_aquisicao|add_class:"form-control" }}
+                      {% for error in form.data_aquisicao.errors %}
+                          <div class="text-danger small">{{ error }}</div>
+                      {% endfor %}
+                  </div>
+              </div>
+              
+              <!-- Status, Condição, Categoria -->
+              <div class="row g-3 mt-3">
+                  <div class="col-md-4">
+                      <label for="status" class="form-label">
+                          <i class="bi bi-check-circle me-1"></i> Status
+                      </label>
+                      {{ form.status|add_class:"form-select form-control" }}
+                      {% for error in form.status.errors %}
+                          <div class="text-danger small">{{ error }}</div>
+                      {% endfor %}
+                  </div>
+                  <div class="col-md-4">
+                      <label for="condicao" class="form-label">
+                          <i class="bi bi-patch-check me-1"></i> Condição
+                      </label>
+                      {{ form.condicao|add_class:"form-select form-control" }}
+                      {% for error in form.condicao.errors %}
+                          <div class="text-danger small">{{ error }}</div>
+                      {% endfor %}
+                  </div>
+                  <div class="col-md-4">
+                      <label for="categoria" class="form-label">
+                          <i class="bi bi-tag me-1"></i> Categoria
+                      </label>
+                      {{ form.categoria|add_class:"form-select form-control" |attr:"id:categorias" }}
+                      {% for error in form.categoria.errors %}
+                          <div class="text-danger small">{{ error }}</div>
+                      {% endfor %}
+                  </div>
+              </div>
+              
+            
+                <!-- Ficha Técnica -->
+                <div class="card mt-3">
+                    <div class="card-header">📋 Ficha Técnica</div>
+                    <div class="card-body" id="fichaTecnica">
+                        <!-- Campos da ficha técnica inseridos via JS -->
+                    </div>
+                </div>
+            
+                <!-- Botão -->
+                <div class="d-flex justify-content-end gap-2 mt-4">
+                  <a href="{% url 'listar_produtos' %}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left"></i> Voltar
+                  </a>
+                  <button type="submit" class="btn btn-success">
+                    <i class="bi bi-check-circle"></i> Salvar Produto
+                  </button>
+                </div>
+
+
+            </form>
+            
+            </div>
+        </div>
+    </div>
+
+{% block scripts %}
+<!-- Scripts e Bibliotecas -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
+<script>
+  $(function () {
+    $("#id_data_aquisicao").datepicker({ dateFormat: "dd/mm/yy" });
+
+    // Código aleatório
+    const campo = $("#id_codigo_produto");
+    console.log("Campo encontrado?", campo.length, "Valor atual:", campo.val());
+    if (campo.length && campo.val().trim() === "") {
+      campo.val('PRD-' + Math.floor(1000 + Math.random() * 9000));
+    }
+
+    // Preview de imagem
+    $("#imagem").on("change", function () {
+      const file = this.files[0];
+      const validTypes = ["image/jpeg", "image/png", "image/jpg"];
+      if (file && !validTypes.includes(file.type)) {
+        alert("Tipo inválido. Use JPEG ou PNG.");
+        $(this).val("");
+        $("#preview-img").addClass("d-none").attr("src", "");
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = e => $("#preview-img").attr("src", e.target.result).removeClass("d-none");
+      reader.readAsDataURL(file);
+    });
+
+    // Ficha Técnica dinâmica
+    function gerarFichaTecnica(categoria) {
+      const container = $('#fichaTecnica').empty();
+      $.post('{% url "get_ficha_tecnica" %}', {
+        categoria: categoria,
+        csrfmiddlewaretoken: '{{ csrf_token }}'
+      }, function (response) {
+        if (response.length > 0) {
+          response.forEach(item => {
+            const safeName = item.nome.replace(/[^\w\s-]/g, '').replace(/\s+/g, '_').toLowerCase();
+            const safeId = String(item.id).replace(/[^\w-]/g, '');            
+            container.append(`
+              <div class="row mb-3">
+                <label for="${safeName}" class="col-sm-4 col-form-label">
+                  <i class="${item.icon}"></i> ${item.nome}
+                </label>
+                <div class="col-sm-8">
+                  <input type="text" class="form-control" id="${safeName}" name="ficha[${safeId}]" placeholder="${item.placeholder || ''}">
+                  </div>
+              </div>
+            `);
+          });
+        } else {
+          container.append('<p class="text-muted">Nenhum detalhe técnico encontrado para esta categoria.</p>');
+        }
+      }).fail(() => alert('Erro ao carregar ficha técnica.'));
+    }
+
+    $('#categorias').on('change', function () {
+      gerarFichaTecnica($(this).val());
+    });
+
+    if ($('#categorias').val()) {
+      gerarFichaTecnica($('#categorias').val());
+    }
+
+    // Submissão AJAX
+    $('#formProduto').submit(function (e) {
+      e.preventDefault();
+      const formData = new FormData(this);
+      $('#fichaTecnica input[name^="ficha["]').each(function () {
+        formData.append($(this).attr('name'), $(this).val());
+      });
+
+  $.ajax({
+    url: '/produto/criar/',  // URL para criar o produto
+    method: 'POST',
+    data: formData,  // Dados do formulário
+    processData: false,
+    contentType: false,
+      success: (response) => {
+      //alert('Produto cadastrado com sucesso!');
+    // Redireciona para a página de busca de produtos
+      window.location.href = '{% url "listar_produtos" %}';  // Altere "produto_lista" para o nome da URL da página de busca
+    },
+    error: (xhr) => {
+      alert(xhr.responseText || 'Erro ao cadastrar produto.');
+    }
+  });
+
+
+    });
+  });
+</script>
+{% endblock %}
+{% block extra_head %}
+<style>
+  #id_codigo_produto {
+      min-height: 60px; /* ajuste conforme o tamanho da imagem pré-visualizada */
+  }
+</style>
+{% endblock %}
+</main>
+{% endblock %}
+

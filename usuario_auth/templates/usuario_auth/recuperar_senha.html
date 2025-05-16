@@ -1,0 +1,33 @@
+{% extends 'base_generic.html' %}
+
+{% block content %}
+<main class="container">
+    <div class="row">
+        <div class="col-md-4 offset-md-4 mt-5">
+            <form method="POST" class="card card-body">
+                <h1 class="text-center">Recuperação de Senha</h1>
+                
+                {% if error %}
+                <div class="alert alert-danger d-flex align-items-center" role="alert">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                    {{ error }}
+                </div>
+                {% endif %}
+                
+                {% csrf_token %}
+                {{ form.as_p }}
+
+                <div class="mb-3">
+                    <i class="bi bi-envelope-fill"></i>
+                    <label for="email">E-mail:</label>
+                    <input type="email" name="email" id="email" class="form-control" placeholder="Digite seu E-mail" required>
+                </div>
+                
+                <button class="btn btn-primary w-100">
+                    Enviar Instruções
+                </button>
+            </form>
+        </div>
+    </div> 
+</main>
+{% endblock %}

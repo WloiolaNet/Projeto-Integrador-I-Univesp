@@ -1,0 +1,55 @@
+{% extends 'base_generic.html' %}
+
+{% block content %}
+
+<main class="container">
+    <div class="row">
+        <div class="col-md-4 offset-md-4 mt-5">
+            <form method="POST" class="card card-body">
+                <h1 class="text-center">Criar uma conta</h1>
+                
+                {% if error %}
+                <div class="alert alert-danger d-flex align-items-center" role="alert">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                    {{ error }}
+                </div>
+                {% endif %} 
+
+                {% csrf_token %}
+                
+                <div class="mb-3">
+                    <i class="bi bi-person-fill"></i>   
+                    <label for="username">Nome:</label>
+                    <input type="text" name="username" id="username"
+                    class="form-control" placeholder="Digite seu Nome" required>
+                </div>
+
+                <div class="mb-3">
+                    <i class="bi bi-key"></i>
+                    <label for="password1">Senha:</label>
+                    <input type="password" name="password1" id="password1"
+                    class="form-control" placeholder="Digite sua Senha" required autocomplete="off">
+                </div>
+
+                <div class="mb-3">
+                    <i class="bi bi-key"></i>
+                    <label for="password2">Confirme sua Senha:</label>
+                    <input type="password" name="password2" id="password2"
+                    class="form-control" placeholder="Confirme sua Senha" required autocomplete="off">
+                </div>
+                <button class="btn btn-primary w-100">
+                    Cadastre-se
+                </button>
+            </form>
+        </div>
+    </div> 
+</main>
+
+{% endblock %}
+
+
+
+
+
+
+

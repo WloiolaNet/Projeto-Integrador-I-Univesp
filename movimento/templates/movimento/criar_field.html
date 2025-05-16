@@ -1,0 +1,230 @@
+{% extends 'base_generic.html' %}
+{% load form_tags %}
+{% load widget_tweaks %}
+
+{% block content %}
+<main>
+  <div class="container mt-5">
+    <div class="card shadow-sm mb-4">
+      <div class="card-body d-flex justify-content-between align-items-center">
+        <h5 class="card-title mb-0 text-muted" style="font-size: 0.875rem;"><i class="bi bi-person-circle me-2"></i>Usuário logado:</h5>
+        <span class="badge bg-success" style="font-size: 0.875rem; font-weight: 300;">{{ user.username }} ({{ user.first_name }} {{ user.last_name }})</span>
+      </div>
+    </div>
+    <div class="card shadow-lg border-0">
+      <div class="card-header bg-success text-white text-center py-3 rounded-top-4">
+        <h2 class="mb-0">
+          <i class="bi bi-arrow-left-right" aria-hidden="true"></i> Adicionar Novo Ativo
+        </h2>
+      </div>
+      <div class="card-body p-4">
+        <form id="formMovimento" method="POST" enctype="multipart/form-data">
+          {% csrf_token %}
+          {{ form.non_field_errors }}
+
+          <!-- Linha 1 -->
+          <div class="row g-3 mt-3">
+            <div class="col-md-4">
+              <label for="codigo_ativo" class="form-label fw-bold">
+                <i class="bi bi-upc-scan me-1"></i> Código do Ativo
+              </label>
+              {{ form.codigo_ativo|add_class:"form-control fw-bold"|attr:"readonly id:codigo_ativo" }}
+            </div>
+            
+            <div class="col-md-4">
+              <label for="id_tipo_entrada" class="form-label">Tipo de Entrada</label>
+              {{ form.tipo_entrada|add_class:"form-control" }}
+            </div>
+            
+            <div class="col-md-4">
+              <label for="data_cadastro" class="form-label">
+                <i class="bi bi-calendar-event me-1"></i> Data de Lançamento
+              </label>
+              {{ form.data_cadastro|add_class:"form-control" }}
+              {% for error in form.data_cadastro.errors %}
+                <div class="text-danger small">{{ error }}</div>
+              {% endfor %}
+            </div>
+          </div>
+  
+          <!-- Linha 2 -->
+          <div class="row g-3 mt-3">
+            <div class="col-md-6">
+              <label for="produto" class="form-label">
+                <i class="bi bi-house-door me-1"></i> Produto
+              </label>
+              {{ form.produto|add_class:"form-select" }}
+              {% for error in form.produto.errors %}
+                <div class="text-danger small">{{ error }}</div>
+              {% endfor %}
+            </div>
+  
+            <div class="col-md-6">
+              <label for="localizacao" class="form-label">
+                <i class="bi bi-geo-alt me-1"></i> Localização
+              </label>
+              {{ form.localizacao|add_class:"form-select" }}
+              {% for error in form.localizacao.errors %}
+                <div class="text-danger small">{{ error }}</div>
+              {% endfor %}
+            </div>
+          </div>
+  
+          <!-- Linha 3 -->
+          <div class="row g-3 mt-3">
+            <div class="col-md-4">
+              <label for="quantidade" class="form-label">
+                <i class="bi bi-pencil-square me-1"></i> Quantidade
+              </label>
+              {{ form.quantidade|add_class:"form-control"|attr:"id:quantidade"|attr:"min:1"|attr:"step:1" }}
+              {% for error in form.quantidade.errors %}
+                <div class="text-danger small">{{ error }}</div>
+              {% endfor %}
+            </div>
+  
+            <div class="col-md-4">
+              <label for="categoria" class="form-label">
+                  <i class="bi bi-tag me-1"></i> Categoria
+              </label>
+              {{ form.categoria|add_class:"form-select form-control" |attr:"id:categoria" }}
+              {% for error in form.categoria.errors %}
+                  <div class="text-danger small">{{ error }}</div>
+              {% endfor %}
+          </div>
+            
+          </div>
+  
+          <!-- Linha 4:  Tabela de Identificação -->
+          <div class="row g-3 mt-3">
+            <div class="form-section" aria-labelledby="tabelaIdentificacao">
+              <h5 id="tabelaIdentificacao"><i class="fas fa-table icon"></i> Tabela de Identificação</h5>
+              <div class="table-responsive">
+                <table class="table table-bordered" id="tabelaNumeros">
+                  <thead>
+                    <tr>
+                      <th>#</th>
+                      <th id="tipoColuna">Identificação</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <!-- Linhas serão geradas dinamicamente -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+  
+          <!-- Botões -->
+          <div class="d-flex justify-content-end gap-2 mt-4">
+            <a href="{% url 'listar_movimentacoes' %}" class="btn btn-outline-secondary">
+              <i class="bi bi-arrow-left"></i> Voltar
+            </a>
+            <button type="submit" class="btn btn-success">
+              <i class="bi bi-check-circle"></i> Salvar Movimentação
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+{% block scripts %}
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<script>
+   $(document).ready(function() {
+    const campo = $("#codigo_ativo");
+    console.log("Campo encontrado?", campo.length, "Valor atual:", campo.val());
+    if (campo.length && campo.val().trim() === "") {
+      campo.val('ATV-' + Math.floor(1000 + Math.random() * 9000));
+    }
+  });
+  
+  function atualizarTabela() {
+  const categoriaSelect = document.getElementById("categoria");
+  const quantidadeInput = document.getElementById("quantidade");
+  const tbody = document.querySelector("#tabelaNumeros tbody");
+  const thTipo = document.getElementById("tipoColuna");
+
+  // Verifique se os elementos existem
+  if (!categoriaSelect || !quantidadeInput || !tbody || !thTipo) {
+    console.error("Um ou mais elementos não foram encontrados.");
+    return;
+  }
+
+  // Pega o valor da categoria
+  const categoriaValor = parseInt(categoriaSelect.value);  // Valor da categoria selecionada como número
+
+  // Pega o valor da quantidade
+  const quantidade = parseInt(quantidadeInput.value) || 0;
+
+  if (quantidade <= 0) {
+    console.log("Por favor, verifique a quantidade.");
+    return;
+  }
+
+  // Limpa a tabela antes de adicionar as novas linhas
+  tbody.innerHTML = "";
+
+  // Altera o título da coluna com base na categoria selecionada
+  let tipo = "";
+  switch (categoriaValor) {
+    case 1:
+      tipo = "Notebook";
+      thTipo.textContent = "Número Serial";
+      break;
+    case 2:
+      tipo = "Monitor";
+      thTipo.textContent = "Número Serial";
+      break;
+    case 3:
+      tipo = "Celular";
+      thTipo.textContent = "IMEI";
+      break;
+    case 4:
+      tipo = "Ipad";
+      thTipo.textContent = "Número Serial";
+      break;
+    case 5:
+      tipo = "Impressora";
+      thTipo.textContent = "Número Serial";
+      break;
+    default:
+      tipo = "Categoria Desconhecida";
+      thTipo.textContent = "Identificação";
+      break;
+  }
+
+  // Preenche a tabela com os campos necessários
+  for (let i = 1; i <= quantidade; i++) {
+    const row = document.createElement("tr");
+    row.innerHTML = `
+      <td>${i}</td>
+      <td><input type="text" name="${tipo === "Celular" ? "imei" : "serial"}[]" class="form-control" required></td>
+    `;
+    tbody.appendChild(row);
+  }
+}
+
+// Chama a função de atualização sempre que o valor mudar
+document.addEventListener("DOMContentLoaded", function () {
+  const categoriaInput = document.getElementById("categoria");
+  const quantidadeInput = document.getElementById("quantidade");
+
+  if (categoriaInput && quantidadeInput) {
+    categoriaInput.addEventListener("change", atualizarTabela);
+    quantidadeInput.addEventListener("input", atualizarTabela);
+    atualizarTabela();  // Inicializa a tabela ao carregar a página
+  } else {
+    console.error("Os elementos necessários não foram encontrados.");
+  }
+});
+
+
+
+</script>
+{% endblock %}
+</main>
+{% endblock %}
+
+

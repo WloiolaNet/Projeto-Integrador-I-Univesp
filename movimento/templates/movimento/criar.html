@@ -1,0 +1,230 @@
+{% extends 'base_generic.html' %}
+
+{% load widget_tweaks %}
+
+{% block content %}
+<main>
+  <div class="container mt-5">
+    <div class="card shadow-sm mb-4">
+      <div class="card-body d-flex justify-content-between align-items-center">
+        <h5 class="card-title mb-0 text-muted" style="font-size: 0.875rem;"><i class="bi bi-person-circle me-2"></i>Usuário logado:</h5>
+        <span class="badge bg-success" style="font-size: 0.875rem; font-weight: 300;">{{ user.username }} ({{ user.first_name }} {{ user.last_name }})</span>
+      </div>
+    </div>
+    <div class="card shadow-lg border-0">
+      <div class="card-header bg-success text-white text-center py-3 rounded-top-4">
+        <h2 class="mb-0">
+          <i class="bi bi-plus-circle fs-3" aria-hidden="true"></i> Adicionar Ativo
+        </h2>
+      </div>
+      <div class="card-body p-4">
+        <form id="formMovimento" method="POST" action="{% url 'criar_movimentacao' %}" enctype="multipart/form-data">
+          {% csrf_token %}
+          {{ form.non_field_errors }}
+
+          <!-- Linha 1 -->
+
+          <div class="row g-3 mt-3">
+            <div class="col-md-4">
+              <label for="codigo_ativo" class="form-label fw-bold">
+                <i class="bi bi-upc-scan me-1"></i> Codigo do Ativo
+              </label>
+              {{ form.codigo_ativo|add_class:"form-control fw-bold" |attr:"id:codigo_ativo" |attr:"title:Insira o código do ativo" |attr:"placeholder:Exemplo: ATV-1234"}}
+            </div>
+            <div class="col-md-4">
+              <label for="id_tipo_entrada" class="form-label">
+                <i class="bi bi-arrow-left-circle me-1"></i>Tipo de Entrada                
+              </label>
+                {{ form.tipo_entrada|add_class:"form-control" |attr:"title:Escolha o tipo de entrada" }}
+            </div>
+            <div class="col-md-4">
+              <label for="data_cadastro" class="form-label">
+                <i class="bi bi-calendar-event me-1"></i> Data de Lançamento
+              </label>
+              {{ form.data_cadastro|add_class:"form-control" |attr:"title:Selecione a data de lançamento" }}
+              {% for error in form.data_cadastro.errors %}
+                <div class="text-danger small">{{ error }}</div>
+              {% endfor %}
+            </div>
+          </div>
+
+          <!-- Linha 2 -->
+
+          <div class="row g-3 mt-3">
+            <div class="col-md-2">
+              <label for="id_codigo_produto" class="form-label">
+                <i class="bi bi-123 me-1"></i> Codigo do Produto
+              </label>
+              {{ form.codigo_produto|add_class:"form-select" |attr:"title:Insira o código do produto" |attr:"placeholder:Exemplo: PROD-5678" }}
+            </div>
+
+            <div class="col-md-4">
+              <label for="produto_nome" class="form-label">
+                <i class="bi bi-card-list me-1"></i>Nome do Produto
+              </label>
+              <input type="text" id="produto_nome" class="form-control" readonly title="Nome do produto (somente leitura)">
+            </div>
+            
+            <div class="col-md-4">
+              <label for="localizacao" class="form-label">
+                <i class="bi bi-geo-alt me-1"></i> Localizacao
+              </label>
+              {{ form.localizacao|add_class:"form-select" |attr:"title:Selecione a localização" }}
+              {% for error in form.localizacao.errors %}
+                <div class="text-danger small">{{ error }}</div>
+              {% endfor %}
+            </div>
+           
+            <div class="col-md-2">
+              <label for="status_atual" class="form-label">
+                <i class="bi bi-plus-circle me-1"></i> Tipo de Movimentação
+              </label>
+              {{ form.status_atual|add_class:"form-select" |attr:"id:status_atual" |attr:"title:Selecione Tipo Movimentação" }}
+              {% for error in form.status_atual.errors %}
+                <div class="text-danger small">{{ error }}</div>
+              {% endfor %}
+            </div>
+
+            <!-- Linha 3 -->
+
+            <div class="row g-3 mt-6">
+              <div class="col-md-2">
+                <label for="quantidade" class="form-label">
+                  <i class="bi bi-pencil-square me-1"></i> Quantidade
+                </label>
+                {{ form.quantidade|add_class:"form-control" |attr:"id:quantidade" |attr:"min:1" |attr:"max:1" |attr:"step:1" |attr:"title:Insira a quantidade do produto" |attr:"placeholder:Exemplo: 10" }}
+                {% for error in form.quantidade.errors %}
+                  <div class="text-danger small">{{error}}</div>
+                {% endfor %}
+              </div>
+              <div class="col-md-3">
+                <label for="categoria" class="form-label">
+                  <i class="bi bi-tag me-1"></i> Categoria
+                </label>
+                {{ form.categoria|add_class:"form-select form-control" |attr:"id:categoria" |attr:"title:Escolha a categoria" }}
+                {% for error in form.categoria.errors %}
+                  <div class="text-danger small">{{ error }}</div>
+                {% endfor %}
+              </div>
+
+              <div class="col-md-3">
+                <label for="imei" class="form-label">
+                  <i class="fas fa-mobile-alt me-1"></i> IMEI
+                </label>
+                {{ form.imei|add_class:"form-control" |attr:"title:Insira o número do IMEI" |attr:"placeholder:Exemplo: 123456789012345" }}
+                {% for error in form.imei.errors %}
+                  <div class="text-danger small">{{ error }}</div>
+                {% endfor %}
+              </div>
+              <div class="col-md-2">
+                <label for="numero_serial" class="form-label">
+                  <i class="bi bi-tags me-1"></i> Número Serial
+                </label>
+                {{ form.numero_serial|add_class:"form-control" |attr:"title:Insira o número de série" |attr:"placeholder:Exemplo: SN-987654321" }}
+                {% for error in form.numero_serial.errors %}
+                  <div class="text-danger small">{{ error }}</div>
+                {% endfor %}
+              </div>
+              <div class="col-md-2">
+                <label for="status_ativo" class="form-label">
+                  <i class="bi bi-check-circle-fill me-1"></i> Status Ativo
+                </label>
+                {{ form.status_ativo|add_class:"form-select form-control" |attr:"id:status_ativo" |attr:"title:Escolha o status do ativo" }}
+                {% for error in form.status_ativo.errors %}
+                  <div class="text-danger small">{{ error }}</div>
+                {% endfor %}
+              </div>
+            </div>
+          </div>
+
+          <!-- Botões -->
+          <div class="d-flex justify-content-end gap-2 mt-4">
+            <a href="{% url 'listar_movimentacoes' %}" class="btn btn-outline-secondary">
+              <i class="bi bi-arrow-left"></i> Voltar
+            </a>
+            <button type="submit" class="btn btn-success">
+              <i class="bi bi-check-circle"></i> Salvar Movimentação
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  {% block scripts %}
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+  <script>
+    $(document).ready(function() {
+      // 1. Preenche o campo 'codigo_ativo' se estiver vazio
+      const campo = $("#codigo_ativo");
+      console.log("Campo encontrado?", campo.length, "Valor atual:", campo.val());
+  
+      if (campo.length && campo.val().trim() === "") {
+        const valorAleatorio = 'ATV-' + Math.floor(1000 + Math.random() * 9000);
+        campo.val(valorAleatorio);
+      }
+  
+      // 2. Atualiza o campo nome do produto ao alterar o select
+      const selectCodigoProduto = $("#id_codigo_produto");
+      const inputNomeProduto = $("#produto_nome");
+  
+      if (selectCodigoProduto.length) {
+        selectCodigoProduto.on('change', function() {
+          const produtoId = $(this).val();
+  
+          if (produtoId) {
+            fetch(`/movimento/get-nome-produto/?id=${produtoId}`)
+              .then(response => response.json())
+              .then(data => {
+                inputNomeProduto.val(data.nome || 'Nome não encontrado');
+              })
+              .catch(error => {
+                console.error("Erro ao buscar nome do produto:", error);
+                inputNomeProduto.val('Erro ao buscar nome');
+              });
+          } else {
+            inputNomeProduto.val('');
+          }
+        });
+      }
+  
+      // 3. Submissão do formulário via AJAX
+      const form = $("#formMovimento");
+  
+      if (form.length) {
+        form.on('submit', function(e) {
+          e.preventDefault();
+          console.log("Enviando formulário via AJAX...");
+  
+          const formData = new FormData(this);
+          
+          $.ajax({
+            url: form.attr('action'),
+            type: "POST",
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function(response) {
+              console.log("Resposta recebida:", response);
+              if (response.status === 'success') {
+                alert(response.message || "Salvo com sucesso!");
+                window.location.href = "/movimento/consultar/"; // <-- Redireciona aqui
+              } else {
+                alert("Erro: " + (response.message || "Verifique os dados."));
+              }
+            },
+            error: function(xhr, status, error) {
+              console.error("Erro no AJAX:", status, error);
+              alert("Erro ao salvar a movimentação.");
+            }
+          });
+        });
+      } else {
+        console.warn("Formulário 'formMovimento' não encontrado.");
+      }
+    });
+  </script>
+  {% endblock %}
+</main>
+{% endblock %}

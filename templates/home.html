@@ -1,0 +1,155 @@
+{% extends 'base_generic.html' %}
+{% load static %}
+
+{% block content %}
+
+<main class="container py-5">
+
+    <style>
+        /* Estilização do banner */
+        .banner {
+            width: 100%;
+            height: 60px; /* Ajuste conforme necessário */
+            background-color: #062536; /* Cor de fundo */
+            display: flex;
+            overflow: hidden;
+            position: relative;
+            justify-content: center; /* Centraliza horizontalmente */
+            align-items: center; /* Centraliza verticalmente */
+            text-align: center; /* Centraliza o texto */
+
+        }
+
+        /* Texto dentro do banner */
+        .banner-content {
+            white-space: nowrap; /* Mantém o texto em uma linha */
+            font-size: 50px;
+            color: #fff;
+            position: absolute;
+            display: inline-block;
+            animation: slideText 22s ease-in-out infinite;
+        }
+
+        /* Animação do texto */
+        @keyframes slideText {
+            
+            0% {
+                transform: translateX(100%); /* Começa da direita */
+                }
+            50% {
+                transform: translateX(60);  /* Meio da animação (texto parado no centro) */
+                }
+            100% {
+                transform: translateX(-100%); /* Vai até a esquerda */
+                }
+
+        }
+
+        .animated-image {
+    animation: floatImage 4s ease-in-out infinite; 
+}
+
+@keyframes floatImage {
+    0% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(0); /* Sobe um pouco */
+    }
+    75% {
+        transform: translateY(0); /* Sobe um pouco */
+
+    }
+    100% {
+        transform: translateY(0); /* Volta ao normal */
+    }
+}
+
+    </style>
+
+
+
+    <section class="card card-body" style="background-color: #176394;">
+        <div class="d-flex align-items-center justify-content-center mb-3">
+            <img src="{% static 'images/Univesp.png' %}" 
+                 alt="Logo UNIVESP" 
+                 class="img-fluid" 
+                 style="max-width: 300px; height: auto; margin-right: 10px;">
+            <h1 class="h2 m-0" style="color: #fff; text-align: center;">Projeto Integrador em Computação I <br> Turma 005</h1>
+        </div>
+
+        <section class="card card-body" style="background-color: #062536;">
+            <div class="d-flex mb-3" style="width: 100%; position: relative; height: 50vh; overflow: hidden;"> <!-- Ajuste da altura -->
+        
+                <!-- Vídeo de fundo -->
+                <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; overflow: hidden;">
+                    <video autoplay muted loop style="width: 100%; height: 100%; object-fit: cover;">
+                        <source src="/media/videos/video3.mp4" type="video/mp4">
+                        Seu navegador não suporta a tag de vídeo.
+                    </video>
+                </div>
+        
+                <!-- Banner abaixo do vídeo -->
+                <div class="banner" style="position: relative; width: 100%; height: 50vh; display: flex; justify-content: center; align-items: center; background-color: rgba(0, 0, 0, 0.5);">
+                    <div class="banner-content" style="position: absolute; bottom: 10px; width: 100%; text-align: center;">
+                        <p style="color: white; font-size: 40px; animation: moveText 1s linear infinite;">
+                            Somos uma equipe apaixonada por tecnologia e inovação, dedicada a criar soluções inteligentes para facilitar a vida das pessoas.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+
+        <div class="text-center">
+            <p></p>
+            <a class="btn btn-secondary" href="{% url 'login' %}" id="connectButton" >Conecte-se</a>
+            <a class="btn btn-dark" href="{% url 'signup' %}">Cadastra-se</a>
+        </div>   
+    </section>
+
+    {% block scripts %}
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const button = document.getElementById("connectButton");
+            const video = document.getElementById("background-video");
+            const source = video.querySelector("source");
+            const originalSrc = source.getAttribute("src");
+
+            // Clique no botão: pausa manual
+            button.addEventListener("click", function () {
+                if (video && !video.paused) {
+                    video.pause();
+                    console.log("Vídeo pausado manualmente.");
+                }
+            });
+
+            // Observer: pausa e descarrega automaticamente
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (!entry.isIntersecting) {
+                        // Saiu da tela: pausa e descarrega
+                        video.pause();
+                        source.removeAttribute("src");
+                        video.load(); // limpa buffer
+                        console.log("Vídeo descarregado para economizar memória");
+                    } else {
+                        // Voltou à tela: recarrega e toca
+                        if (!source.getAttribute("src")) {
+                            source.setAttribute("src", originalSrc);
+                            video.load();
+                            video.play();
+                            console.log("Vídeo recarregado ao voltar à tela");
+                        }
+                    }
+                });
+            }, { threshold: 0 });
+
+            observer.observe(video);
+        });
+
+    </script>
+    {% endblock %}
+</main>
+
+{% endblock %}

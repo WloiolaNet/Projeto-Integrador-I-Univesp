@@ -1,0 +1,345 @@
+{% extends 'base_generic.html' %}
+
+{% block content %}
+
+<style>
+        /* Ou, se for CSS interno, insira diretamente aqui */
+    .card {
+        border-radius: 10px !important;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+    }
+    .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+    }
+    .card-body {
+        padding: 1.5rem;
+    }
+</style>
+
+<main class="container py-5">
+    <div class="card shadow-sm mb-4">
+        <div class="card-body d-flex justify-content-between align-items-center">
+            <h5 class="card-title mb-0 text-muted" style="font-size: 0.875rem;"><i class="bi bi-person-circle me-2"></i>Usuário logado:</h5>
+            <span class="badge" style="font-size: 0.875rem; font-weight: 300; background-color: #062738;">{{ user.username }} ({{ user.first_name }} {{ user.last_name }})</span>
+        </div>
+    </div>
+    <!-- Título -->
+    <div class="col-md-12 mb-4">
+        <div class="card shadow-lg border-0 text-white rounded-3" style="background-color: #062738;">
+            <div class="card-body text-center">
+                <h1 class="mb-3" style="font-size: 36px; font-weight: 600; color: #ffffff;">
+                    📊 Dashboard de Controle de Ativos
+                </h1>
+                <p class="text-white" style="font-size: 18px; font-weight: 400;">
+                    Monitoramento e gestão de ativos de forma eficiente e precisa
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cards de Indicadores -->
+    <div class="row g-4 justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow-lg border-0 text-white rounded-3" style="background-color: #176394;">
+                <div class="card-body text-center">
+                    <h3 class="card-title"><i class="fas fa-warehouse"></i> Total de Ativos</h3>
+                    <p class="display-4 fw-bold">{{ total_ativos }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card shadow-lg border-0 text-white rounded-3" style="background-color: #176394;">
+                <div class="card-body text-center">
+                    <h3 class="card-title"><i class="bi bi-check-circle-fill"></i> Ativos Disponíveis</h3>
+                    <p class="display-4 fw-bold">{{ ativos_disponiveis }}</p>                    
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Indicadores de performance -->
+    <div class="row g-4 mt-3">
+        
+
+        <div class="col-md-4">
+            <div class="card shadow-lg border-0 text-white rounded-3" style="background-color: #062536;">
+                <div class="card-body text-center">
+                    <h3 class="card-title"><i class="fas fa-arrow-down"></i> Entrada de Ativo</h3>
+                    <p class="display-6 fw-bold">{{ entradas }}</p>
+                    <p class="text-white">Mês passado: {{ entradas_passado }}</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card shadow-lg border-0 text-white rounded-3" style="background-color: #062536;">
+                <div class="card-body text-center">
+                    <h3 class="card-title"><i class="fas fa-arrow-up"></i> Saída de Ativo</h3>
+                    <p class="display-6 fw-bold">{{ saidas }}</p>
+                    <p class="text-white">Mês passado: {{ saidas_passado }}</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card shadow-lg border-0 text-white rounded-3" style="background-color: #062536;">
+                <div class="card-body text-center">
+                    <h3 class="card-title"><i class="fas fa-undo-alt"></i> Manutenção Ativo</h3>
+                    <p class="display-6 fw-bold">{{ manutencao }}</p>
+                    <p class="text-white">Mês passado: {{ manutencao_passado }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Ativos mais utilizados -->
+    <div class="row g-4 mt-4">
+        <div class="col-md-5">
+            <div class="card shadow-lg border-0 rounded-3">
+                <div class="card-body">
+                    <h3 class="card-title text-center text-info"><i class="fas fa-cogs"></i> Ativos Mais Utilizados</h3>
+                    <ul class="list-group">
+                        {% for ativo in ativos_mais_utilizados %}
+                            <li class="list-group-item d-flex justify-content-between">
+                                <span>{{ ativo.codigo_produto.nome }} {{ ativo.codigo_produto.marca }} {{ ativo.codigo_produto.modelo }}</span>
+                                <span class="badge bg-info">{{ ativo.total_movimentacoes }}</span>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Gráficos de ativos e movimentação -->
+        <div class="col-md-3">
+            <div class="card shadow-lg border-0 bg-white rounded-3">
+                <h3 class="card-title text-center text-info"><i class="fas fa-chart-pie"></i> Visão Geral dos Ativos</h3>
+                <div class="d-flex justify-content-center">
+                    <canvas id="ativosChart" width="300" height="300"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card shadow-lg border-0 bg-white rounded-3">
+                <h3 class="card-title text-center text-info">
+                    <i class="fas fa-chart-bar"></i> Movimentações por Categoria
+                </h3>
+                <canvas id="categoriaChart" width="600" height="300"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gráficos de comparação de movimentações -->
+    <div class="row g-4 mt-4">
+        <div class="col-md-6">
+            <div class="card shadow-lg border-0 bg-white rounded-3">
+                <div class="card-body">
+                    <h3 class="card-title text-center text-info"><i class="fas fa-chart-bar"></i> Comparativo de Movimentações</h3>
+                    <canvas id="barraChart" style="width: 100%; height: 150px;"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tendência de ativos (gráfico de linha) -->
+        <div class="col-md-6">
+            <div class="card shadow-lg border-0 bg-white rounded-3">
+                <div class="card-body">
+                    <h3 class="card-title text-center text-info"><i class="fas fa-chart-line"></i> Tendência de Ativos</h3>
+                    <canvas id="linhaChart" style="width: 100%; height: 150px;"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bloco para scripts -->
+    <!-- Bloco para scripts -->
+    {% block scripts %}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/js/all.min.js"></script>
+   
+    {{ entradas_json|json_script:"entradas-data" }}
+    {{ saidas_json|json_script:"saidas-data" }}
+    {{ manutencao_json|json_script:"manutencao-data" }}
+    {{ tendencia_json|json_script:"tendencia-data" }}
+
+    <!-- Adicionando o JSON com o filtro json_script -->
+    
+    {{ movimentacoes_por_categoria|json_script:"movimentacoesPorCategoria" }}
+   
+
+    <script>
+        const entradas = JSON.parse(document.getElementById('entradas-data').textContent);
+        const saidas = JSON.parse(document.getElementById('saidas-data').textContent);
+        const manutencao = JSON.parse(document.getElementById('manutencao-data').textContent);
+        const tendenciaAtivoData = JSON.parse(document.getElementById('tendencia-data').textContent);
+
+        const ctx = document.getElementById('ativosChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Entradas', 'Saídas', 'manutenções'],
+                datasets: [{
+                    data: [entradas.total, saidas.total, manutencao.total],
+                    backgroundColor: ['#4CAF50', '#F44336', '#FFC107'],
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                aspectRatio: 1, 
+                responsive: true,
+                plugins: {
+                    legend: { position: 'bottom' },
+                    tooltip: {
+                        backgroundColor: '#222',
+                        titleColor: '#fff',
+                        bodyColor: '#ddd'
+                    }
+                }
+            }
+        });
+
+        const ctxBar = document.getElementById('barraChart').getContext('2d');
+        new Chart(ctxBar, {
+            type: 'bar',
+            data: {
+                labels: ['Entradas', 'Saídas', 'manutenções'],
+                datasets: [{
+                    label: 'Movimentações',
+                    data: [entradas.total, saidas.total, manutencao.total],
+                    backgroundColor: ['#4CAF50', '#F44336', '#FFC107'],
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { position: 'top' },
+                    tooltip: {
+                        backgroundColor: '#222',
+                        titleColor: '#fff',
+                        bodyColor: '#ddd'
+                    }
+                }
+            }
+        });
+
+        // Tendência de ativos (linha)
+        const labels = [...new Set(Object.values(tendenciaAtivoData).flat().map(item => item.mes))];
+        const datasets = Object.keys(tendenciaAtivoData).map(nome => {
+            const data = labels.map(label => {
+                const reg = tendenciaAtivoData[nome].find(item => item.mes === label);
+                return reg ? reg.movimentacoes : 0;
+            });
+            return {
+                label: nome,
+                data: data,
+                borderColor: `rgba(${Math.random()*255}, ${Math.random()*255}, ${Math.random()*255}, 1)`
+            };
+        });
+
+        const ctxLine = document.getElementById('linhaChart').getContext('2d');
+        new Chart(ctxLine, {
+            type: 'line',
+            data: { labels: labels, datasets: datasets },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { position: 'top' },
+                    tooltip: {
+                        backgroundColor: '#222',
+                        titleColor: '#fff',
+                        bodyColor: '#ddd'
+                    }
+                }
+            }
+        });
+
+        document.addEventListener("DOMContentLoaded", function () {
+        const jsonElement = document.getElementById("movimentacoesPorCategoria");
+
+        if (!jsonElement) {
+            console.error("A tag <script> com id 'movimentacoesPorCategoria' não foi encontrada.");
+            return;
+        }
+
+        try {
+            const movimentacoesPorCategoria = JSON.parse(jsonElement.textContent.trim());
+            console.log("Movimentações por Categoria:", movimentacoesPorCategoria);
+
+            if (!Array.isArray(movimentacoesPorCategoria) || movimentacoesPorCategoria.length === 0) {
+                throw new Error("Dados de movimentações por categoria estão vazios ou inválidos.");
+            }
+
+            // Extraindo labels e dados
+            const categoriaLabels = movimentacoesPorCategoria.map(item => item.nome);
+            const categoriaData = movimentacoesPorCategoria.map(item => item.total_movimentacoes);
+
+            // Criando o gráfico
+            const ctx = document.getElementById('categoriaChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: categoriaLabels,
+                    datasets: [{
+                        label: 'Movimentações por Categoria',
+                        data: categoriaData,
+                        backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+
+        } catch (e) {
+            console.error("Erro ao processar o JSON. Usando dados de fallback:", e);
+
+            const fallbackData = [
+                { nome: "Categoria 1", total_movimentacoes: 10 },
+                { nome: "Categoria 2", total_movimentacoes: 15 }
+            ];
+
+            const fallbackLabels = fallbackData.map(item => item.nome);
+            const fallbackValues = fallbackData.map(item => item.total_movimentacoes);
+
+            const ctx = document.getElementById('categoriaChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: fallbackLabels,
+                    datasets: [{
+                        label: 'Movimentações por Categoria (Fallback)',
+                        data: fallbackValues,
+                        backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                        borderColor: 'rgba(255, 99, 132, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+    });
+
+
+    </script>
+    {% endblock %}
+
+</main>
+{% endblock %}

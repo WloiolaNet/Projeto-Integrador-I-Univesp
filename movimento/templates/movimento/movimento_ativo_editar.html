@@ -1,0 +1,143 @@
+{% extends 'base_generic.html' %}
+{% load widget_tweaks %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="card shadow-sm mb-4">
+        <div class="card-body d-flex justify-content-between align-items-center">
+            <h5 class="card-title mb-0 text-muted" style="font-size: 0.875rem;"><i class="bi bi-person-circle me-2"></i>Usuário logado:</h5>
+            <span class="badge bg-warning text-dark" style="font-size: 0.875rem; font-weight: 300;">{{ user.username }} ({{ user.first_name }} {{ user.last_name }})</span>
+        </div>
+    </div>
+  <div class="card shadow-lg border-0" >
+    <div class="card-header bg-warning text-dark text-center py-3">
+      <h2 class="mb-0">
+        <i class="bi bi-pencil-square me-2"></i> Editar Ativo
+      </h2>
+    </div>
+    <div class="card-body p-4">
+        <form method="POST" novalidate>
+            {% csrf_token %}
+            <!-- Linha 1 -->
+            <div class="row g-3 mt-3">
+                <div class="col-md-3">
+                    <label for="ativo" class="form-label fw-bold">
+                        <i class="bi bi-upc-scan me-1"></i> Código do Ativo
+                    </label>
+                    <input type="text" id="ativo" class="form-control" value="{{ form.instance.ativo.codigo_ativo }}" readonly>
+                    <input type="hidden" name="ativo" value="{{ form.ativo.value }}">
+
+                    {% if form.ativo.errors %}
+                        <div class="text-danger small">{{ form.ativo.errors }}</div>
+                    {% endif %}
+                        
+                </div>
+                <div class="col-md-3">
+                    <label for="tipo" class="form-label">Tipo de movimentação Anterior</label>
+                    {{ form.status_anterior }}
+                    {% if form.status_anterior.errors %}
+                        <div class="text-danger small">{{ form.status_anterior.errors }}</div>
+                    {% endif %}
+                </div>  
+                <div class="col-md-3">
+                    <label for="tipo" class="form-label">Tipo de movimentação Nova</label>
+                    {{ form.status_novo }}
+                    {% if form.status_novo.errors %}
+                        <div class="text-danger small">{{ form.status_novo.errors }}</div>
+                    {% endif %}
+                </div>  
+                <div class="col-md-3">
+                    <label for="data" class="form-label">
+                        <i class="bi bi-calendar-event me-1"></i> Data de Lançamento
+                    </label>
+                    {{ form.data }}
+                    {% if form.data.errors %}
+                        <div class="text-danger small">{{ form.data.errors }}</div>
+                    {% endif %}
+                </div>
+            </div>         
+
+                <!-- Linha 2 -->
+            <div class="row g-3 mt-3">
+                <div class="col-md-3">
+                    <label for="codigo_produto" class="form-label">Código do Produto</label>
+                    <input type="text" id="codigo_produto" class="form-control" readonly title="Código do produto (somente leitura)">
+                </div>  
+                <div class="col-md-6">
+                    <label for="produto_nome" class="form-label">Nome do Produto</label>
+                    <input type="text" id="produto_nome" class="form-control" readonly title="Nome do produto (somente leitura)">
+                </div>
+            
+                <div class="col-md-3">
+                    <label for="produto_IMEI_SN" class="form-label">IMEI-S/N</label>
+                    <input type="text" id="produto_IMEI_SN" class="form-control" readonly title="Número IMEI ou Serial (somente leitura)">                    
+                </div>
+            </div>
+
+                <!-- Linha 3 -->
+            <div class="row g-3 mt-3">
+                <div class="col-md-4">
+                    <label for="id_origem" class="form-label">
+                        <i class="bi bi-house-door me-1"></i> Origem do Ativo
+                    </label>
+                    {{ form.local_anterior }}
+                    {% if form.local_anterior.errors %}
+                        <div class="text-danger small">{{ form.local_anterior.errors }}</div>
+                    {% endif %}
+                </div>  
+                <div class="col-md-4">
+                    <label for="id_destino" class="form-label">
+                        <i class="bi bi-house-door me-1"></i> Destino do Ativo
+                    </label>
+                    {{ form.local_novo }}
+                    {% for error in form.local_novo.errors %}
+                        <div class="text-danger small">{{ form.local_novo.errors }}</div>
+                    {% endfor %}
+                </div>
+                <div class="col-md-4">
+                    <label for="usuario_final" class="form-label">
+                        <i class="bi bi-pencil-square me-1"></i> Usuário Final
+                    </label>
+                    {{ form.usuario_final }}
+                    {% for error in form.usuario_final.errors %}
+                        <div class="text-danger small">{{ form.usuario_final.error }}</div>
+                    {% endfor %}
+                </div>
+            </div>
+
+                <!-- Linha 4 -->
+            <div class="row g-3 mt-3">
+                <div class="col-md-4">
+                    <label for="responsavel" class="form-label">
+                        <i class="bi bi-pencil-square me-1"></i> Usuario Responsável pela movimentação
+                    </label>
+                    {{ form.usuario_responsavel }}
+                    {% for error in form.usuario_responsavel.errors %}
+                        <div class="text-danger small">{{ form.usuario_responsavel.error }}</div>
+                    {% endfor %}
+                </div>
+                <div class="col-md-8">
+                    <label for="observacao" class="form-label">
+                        <i class="bi bi-geo-alt me-1"></i> Observação
+                    </label>
+                    {{ form.observacao }}
+                    {% for error in form.observacao.errors %}
+                        <div class="text-danger small">{{ form.observacao.error }}</div>
+                    {% endfor %}
+                </div>
+            </div>
+                
+            <!-- Botões -->
+            <div class="d-flex justify-content-end gap-2 mt-4">
+                <a href="{% url 'listar_movimentacoes_ativo' %}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left"></i> Voltar
+                </a>
+                <button type="submit" class="btn btn-warning">
+                    <i class="bi bi-check-circle"></i> Salvar Alterações
+                </button>
+            </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

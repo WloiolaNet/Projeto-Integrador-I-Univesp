@@ -1,0 +1,13 @@
+{% comment %}
+Custom widget para input de arquivo SEM "Clear", nem "Escolher nova imagem".
+{% endcomment %}
+
+{% if widget.is_initial %}
+  <div id="imagem-atual" class="d-flex align-items-center gap-2 mt-3">
+    <img id="img-atual" src="{{ widget.value.url }}" alt="Imagem Atual" style="max-height: 200px; border: 1px solid #ccc; border-radius: 8px;">
+    <span id="texto-imagem-atual" class="ms-2 text-muted">{{ widget.value.name }}</span>
+  </div>
+{% endif %}
+
+<input type="{{ widget.type }}" name="{{ widget.name }}"
+       {% include "django/forms/widgets/attrs.html" %}>

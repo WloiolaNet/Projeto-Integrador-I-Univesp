@@ -1,0 +1,322 @@
+{% extends 'base_generic.html' %}
+
+{% block content %}
+<main class="container py-5">
+    <h1 class="text-center mb-5 text-primary" style="font-weight: 600;">📊 Dashboard de Controle de Ativos</h1>
+
+    <div class="row g-4">
+        <div class="col-md-4 mx-auto">
+            <div class="card shadow-sm border-0 bg-light">
+                <div class="card-body text-center">
+                    <h3 class="card-title text-secondary"><i class="fas fa-warehouse"></i> Total de Ativos</h3>
+                    <p class="display-4 fw-bold text-primary">{{ total_ativos }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Indicadores de performance -->
+    <div class="row g-4 mt-3">
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0 bg-success text-white">
+                <div class="card-body text-center">
+                    <h3 class="card-title"><i class="fas fa-arrow-down"></i> Entrada de Ativo</h3>
+                    <p class="display-6 fw-bold">{{ entradas }}</p>
+                    <p class="text-white">Mês passado: {{ entradas_passado }}</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0 bg-danger text-white">
+                <div class="card-body text-center">
+                    <h3 class="card-title"><i class="fas fa-arrow-up"></i> Saída de Ativo</h3>
+                    <p class="display-6 fw-bold">{{ saidas }}</p>
+                    <p class="text-white">Mês passado: {{ saidas_passado }}</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0 bg-warning text-dark">
+                <div class="card-body text-center">
+                    <h3 class="card-title"><i class="fas fa-undo-alt"></i> Devolução de Ativo</h3>
+                    <p class="display-6 fw-bold">{{ devolucoes }}</p>
+                    <p class="text-dark">Mês passado: {{ devolucoes_passado }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Ativos mais utilizados -->
+    <div class="row g-4 mt-4">
+        <div class="col-md-6">
+            <div class="card shadow-lg border-0 bg-white">
+                <div class="card-body">
+                    <h3 class="card-title text-center text-info"><i class="fas fa-cogs"></i> Ativos Mais Utilizados</h3>
+                    <ul class="list-group">
+                        {% for ativo in ativos_mais_utilizados %}
+                            <li class="list-group-item d-flex justify-content-between">
+                                <span>{{ ativo.equipamento }}</span>
+                                <span class="badge bg-info">{{ ativo.total_movimentacoes }}</span>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Gráficos de ativos e movimentação -->
+        <div class="col-md-6">
+            <div class="card shadow-lg border-0 bg-white">
+                <div class="card-body">
+                    <h3 class="card-title text-center text-info"><i class="fas fa-chart-pie"></i> Visão Geral dos Ativos</h3>
+                    <canvas id="ativosChart" style="width: 100%; height: 150px;"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gráficos de comparação de movimentações -->
+    <div class="row g-4 mt-4">
+        <div class="col-md-6">
+            <div class="card shadow-lg border-0 bg-white">
+                <div class="card-body">
+                    <h3 class="card-title text-center text-info"><i class="fas fa-chart-bar"></i> Comparativo de Movimentações</h3>
+                    <canvas id="barraChart" style="width: 100%; height: 150px;"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tendência de ativos (gráfico de linha) -->
+        <div class="col-md-6">
+            <div class="card shadow-lg border-0 bg-white">
+                <div class="card-body">
+                    <h3 class="card-title text-center text-info"><i class="fas fa-chart-line"></i> Tendência de Ativos</h3>
+                    <canvas id="linhaChart" style="width: 100%; height: 150px;"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/js/all.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+
+
+    <!-- Elemento invisível contendo os dados JSON -->
+    <script id="tendenciaAtivoData" type="application/json">
+        {"key": "value"}
+    </script>
+
+    <script>
+        // Certifique-se de que os dados estão sendo passados corretamente do Django para o JavaScript
+        const entradas = JSON.parse('{{ entradas|escapejs }}');
+        const saidas = JSON.parse('{{ saidas|escapejs }}');
+        const devolucoes = JSON.parse('{{ devolucoes|escapejs }}');
+
+        console.log('Entradas:', entradas); // Debug
+        console.log('Saídas:', saidas);     // Debug
+        console.log('Devoluções:', devolucoes); // Debug
+    
+        const ctx = document.getElementById('ativosChart').getContext('2d');
+        const ativosChart = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Entradas', 'Saídas', 'Devoluções'],
+                datasets: [{
+                    data: [entradas, saidas, devolucoes],
+                    backgroundColor: ['#4CAF50', '#F44336', '#FFC107'],
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: { color: '#555' }
+                    },
+                    tooltip: {
+                        backgroundColor: '#222',
+                        titleColor: '#fff',
+                        bodyColor: '#ddd'
+                    }
+                }
+            }
+        });
+    
+        const ctxBar = document.getElementById('barraChart').getContext('2d');
+        const barraChart = new Chart(ctxBar, {
+            type: 'bar',
+            data: {
+                labels: ['Entradas', 'Saídas', 'Devoluções'],
+                datasets: [{
+                    label: 'Movimentações',
+                    data: [entradas, saidas, devolucoes],
+                    backgroundColor: ['#4CAF50', '#F44336', '#FFC107'],
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                        labels: { color: '#555' }
+                    },
+                    tooltip: {
+                        backgroundColor: '#222',
+                        titleColor: '#fff',
+                        bodyColor: '#ddd'
+                    }
+                }
+            }
+        });     
+        
+
+        const tendenciaAtivoData = {
+    "Calcado": [
+        {"mes": "2025-03", "movimentacoes": 1},
+        {"mes": "2025-04", "movimentacoes": 2},
+        {"mes": "2025-05", "movimentacoes": 3}
+    ],
+    "Mochila Nike": [
+        {"mes": "2025-03", "movimentacoes": 1},
+        {"mes": "2025-04", "movimentacoes": 2},
+        {"mes": "2025-05", "movimentacoes": 3}
+    ],
+    "Notebook": [
+        {"mes": "2025-03", "movimentacoes": 1},
+        {"mes": "2025-04", "movimentacoes": 2},
+        {"mes": "2025-05", "movimentacoes": 3}
+    ],
+    "Sapato": [
+        {"mes": "2025-03", "movimentacoes": 1},
+        {"mes": "2025-04", "movimentacoes": 2},
+        {"mes": "2025-05", "movimentacoes": 3}
+    ],
+    "Tablet": [
+        {"mes": "2025-03", "movimentacoes": 1},
+        {"mes": "2025-04", "movimentacoes": 2},
+        {"mes": "2025-05", "movimentacoes": 3}
+    ],
+    "capacete": [
+        {"mes": "2025-03", "movimentacoes": 1},
+        {"mes": "2025-04", "movimentacoes": 2},
+        {"mes": "2025-05", "movimentacoes": 3}
+    ],
+    "cinto de seguranca": [
+        {"mes": "2025-03", "movimentacoes": 1},
+        {"mes": "2025-04", "movimentacoes": 2},
+        {"mes": "2025-05", "movimentacoes": 3}
+    ],
+    "notebook": [
+        {"mes": "2025-03", "movimentacoes": 2},
+        {"mes": "2025-04", "movimentacoes": 3},
+        {"mes": "2025-05", "movimentacoes": 4}
+    ]
+};
+
+// Função para gerar uma cor aleatória no formato rgba
+function getRandomColor() {
+    const r = Math.floor(Math.random() * 256);
+    const g = Math.floor(Math.random() * 256);
+    const b = Math.floor(Math.random() * 256);
+    return `rgba(${r}, ${g}, ${b}, 0.6)`;  // Cor com transparência ajustada
+}
+
+// Criando as labels (meses) sem duplicatas
+const labels = [...new Set(
+    Object.values(tendenciaAtivoData) // Pega os arrays de cada ativo
+        .flat() // Achata os arrays em um único nível
+        .map(item => item.mes) // Extrai o mês de cada item
+)];
+
+console.log("Labels:", labels);
+
+// Criando os datasets para o gráfico
+const datasets = Object.keys(tendenciaAtivoData).map(ativo => {
+    const dataArray = tendenciaAtivoData[ativo]; // Pega o array associado a cada ativo
+
+    // Mapeando as movimentações para cada mês
+    const data = labels.map(label => {
+        // Procurando a movimentação do ativo para cada mês
+        const item = dataArray.find(item => item.mes === label);
+        return item ? item.movimentacoes : 0; // Se não encontrar, retorna 0
+    });
+
+    // Gerando uma cor única para cada ativo
+    const color = getRandomColor();
+
+    // Retorna o objeto com dados para o gráfico
+    return {
+        label: ativo,
+        data: data,
+        backgroundColor: color, // Cor de fundo das linhas
+        borderColor: color, // Cor da borda das linhas
+        borderWidth: 2, // Largura da borda das linhas
+        fill: false, // Não preenche a área abaixo da linha
+        pointRadius: 6, // Tamanho dos pontos na linha
+        pointBackgroundColor: color, // Cor de fundo dos pontos
+        pointBorderColor: color, // Cor da borda dos pontos
+        pointBorderWidth: 2, // Largura da borda dos pontos
+        tension: 0.4, // Ajuste na suavização das linhas
+        showLine: true,  // Garantir que a linha seja desenhada
+    };
+});
+
+// Configurando o gráfico com o Chart.js
+const ctx2 = document.getElementById('linhaChart').getContext('2d');
+const tendenciaAtivoChart = new Chart(ctx2, {
+    type: 'bar',  // Tipo de gráfico: linha
+    data: {
+        labels: labels,  // Labels para os meses
+        datasets: datasets,  // Dados para os ativos
+    },
+    options: {
+        responsive: true,  // Garante que o gráfico seja responsivo
+        maintainAspectRatio: false,  // Permite que o gráfico seja redimensionado
+        scales: {
+            y: {
+                beginAtZero: true,  // Começa a escala do eixo Y do zero
+                ticks: {
+                    stepSize: 1, // Incrementos de 1 para uma escala mais detalhada
+                }
+            },
+            x: {
+                ticks: {
+                    autoSkip: false,  // Não pula os meses no eixo X
+                    maxRotation: 45,  // Rotaciona os rótulos do eixo X para facilitar a leitura
+                    minRotation: 45,
+                }
+            }
+        },
+        plugins: {
+            legend: {
+                position: 'top',  // Posicionamento da legenda
+                labels: {
+                    font: {
+                        size: 12 // Ajustando o tamanho da fonte da legenda
+                    }
+                }
+            },
+            tooltip: {
+                callbacks: {
+                    label: function(tooltipItem) {
+                        return `Movimentações: ${tooltipItem.raw}`; // Exibe os valores exatos nas dicas de ferramenta
+                    }
+                }
+            }
+        }
+    }
+});
+
+
+    </script>
+
+    
+</main>
+{% endblock %}

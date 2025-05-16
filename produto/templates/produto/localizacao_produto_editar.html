@@ -1,0 +1,47 @@
+{% extends "base_generic.html" %}
+{% load widget_tweaks %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="card shadow-sm mb-4">
+        <div class="card-body d-flex justify-content-between align-items-center">
+          <h5 class="card-title mb-0 text-muted" style="font-size: 0.875rem;"><i class="bi bi-person-circle me-2"></i>Usuário logado:</h5>
+          <span class="badge bg-warning text-dark" style="font-size: 0.875rem; font-weight: 300;">{{ user.username }} ({{ user.first_name }} {{ user.last_name }})</span>
+        </div>
+    </div>
+    <div class="card shadow-lg border-0">
+        <div class="card-header bg-warning text-dark text-center py-3">
+            <h2 class="mb-0">
+                <i class="bi bi-pencil-square me-2"></i> Editar Localização do Produto
+            </h2>
+        </div>
+        <div class="card-body p-4">
+            <form method="post" novalidate>
+                {% csrf_token %}
+                {{ form.non_field_errors }}
+
+                <!-- Seção da categoria -->
+                <fieldset class="border p-3 rounded mb-4">
+                    <legend class="float-none w-auto px-2 fs-6 text-muted">Informações da Localização</legend>
+                    <div class="mb-3">
+                        {{ form.nome.label_tag }} 
+                        {{ form.nome|add_class:"form-control" }}
+                        {% for error in form.nome.errors %}
+                            <div class="text-danger small">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                </fieldset>
+
+                <div class="d-flex justify-content-end gap-2 mt-4">
+                    <a href="{% url 'localizacao_produto_listar' %}" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left"></i> Voltar
+                    </a>
+                    <button type="submit" class="btn btn-warning">
+                        <i class="bi bi-check-circle"></i> Salvar Alterações
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

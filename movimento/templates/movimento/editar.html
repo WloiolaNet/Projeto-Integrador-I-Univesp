@@ -1,0 +1,230 @@
+{% extends 'base_generic.html' %}
+{% load widget_tweaks %}
+
+{% block content %}
+<div class="container my-5">
+  <div class="card shadow-sm mb-4">
+    <div class="card-body d-flex justify-content-between align-items-center">
+      <h5 class="card-title mb-0 text-muted" style="font-size: 0.875rem;"><i class="bi bi-person-circle me-2"></i>Usuário logado:</h5>
+      <span class="badge bg-warning text-dark" style="font-size: 0.875rem; font-weight: 300;">{{ user.username }} ({{ user.first_name }} {{ user.last_name }})</span>
+    </div>
+  </div>
+  <div class="card shadow-lg border-0" >
+    <div class="card-header bg-warning text-dark text-center py-3">
+      <h2 class="mb-0">
+        <i class="bi bi-pencil-square me-2"></i> Editar Ativo
+      </h2>
+    </div>
+
+    <div class="card-body p-4">
+      <form method="POST" novalidate>
+        {% csrf_token %}
+
+        <div class="row g-3 mt-3">
+          <!-- Linha 1: código e chamado -->
+                   
+          <div class="col-md-4">
+            <label for="codigo_ativo" class="form-label fw-bold">
+              <i class="bi bi-upc-scan me-1"></i> Codigo do Ativo
+            </label>
+            <input type="text" id="codigo_ativo" class="form-control" value="{{ form.codigo_ativo.value }}" readonly>
+            {% if form.codigo_ativo.errors %}
+              <div class="text-danger small">{{ form.codigo_ativo.errors }}</div>
+            {% endif %}
+            <input type="hidden" name="codigo_ativo" value="{{ form.codigo_ativo.value }}">
+          </div>
+
+          <div class="col-md-4">
+            <label for="id_tipo_entrada" class="form-label">
+              <i class="bi bi-arrow-left-circle me-1"></i>Tipo de Entrada
+            </label>
+              {{ form.tipo_entrada }}
+              {% if form.tipo_entrada.errors %}
+                <div class="text-danger small">{{ form.tipo_entrada.errors }}</div>
+              {% endif %}
+          </div>
+
+          <div class="col-md-4">
+            <label for="data_cadastro" class="form-label">
+              <i class="bi bi-calendar-event me-1"></i> Data de Lançamento
+            </label>
+            {{ form.data_cadastro }}
+            {% if form.data_cadastro.errors %}
+                <div class="text-danger small">{{ form.data_cadastro.errors }}</div>
+            {% endif %}
+          </div>
+
+        </div>
+
+        <!-- Linha 2 -->
+
+        <div class="row g-3 mt-3">
+          <div class="col-md-2">
+            <label for="codigo_produto" class="form-label">
+              <i class="bi bi-123 me-1"></i> Codigo do Produto
+            </label>
+            {{ form.codigo_produto|add_class:"form-select" }}
+            {% if form.codigo_produto.errors %}
+              <div class="text-danger small">{{ form.codigo_produto.errors }}</div>
+            {% endif %}
+          </div>
+
+          <div class="col-md-4">
+            <label for="produto_nome" class="form-label">
+              <i class="bi bi-card-list me-1"></i>Nome do Produto
+            </label>
+            <input type="text" id="produto_nome" class="form-control" readonly title="Nome do produto (somente leitura)">
+          </div>
+          
+          <div class="col-md-4">
+            <label for="localizacao" class="form-label">
+              <i class="bi bi-geo-alt me-1"></i> Localizacao
+            </label>
+            {{ form.localizacao }}
+            {% if form.localizacao.errors %}
+              <div class="text-danger small">{{ form.localizacao.errors }}</div>
+            {% endif %}
+          </div>
+         
+          <div class="col-md-2">
+            <label for="id_status" class="form-label">
+              <i class="bi bi-plus-circle me-1"></i> Tipo de Movimentação
+            </label>
+            {{ form.status_atual }}
+            {% if form.status_atual.errors %}
+              <div class="text-danger small">{{ form.status_atual.errors }}</div>
+            {% endif %}
+          </div>
+
+          <!-- Linha 3 -->
+
+          <div class="row g-3 mt-6">
+            <div class="col-md-2">
+              <label for="quantidade" class="form-label">
+                <i class="bi bi-pencil-square me-1"></i> Quantidade
+              </label>
+              {{ form.quantidade }}
+              {% if form.quantidade.errors %}
+                <div class="text-danger small">{{ form.quantidade.errors }}</div>
+              {% endif %}
+            </div>
+            <div class="col-md-3">
+              <label for="categoria" class="form-label">
+                <i class="bi bi-tag me-1"></i> Categoria
+              </label>
+              {{ form.categoria }}
+              {% if form.categoria.errors %}
+                <div class="text-danger small">{{ form.categoria.errors }}</div>
+              {% endif %}
+            </div>
+
+            <div class="col-md-3">
+              <label for="imei" class="form-label">
+                <i class="fas fa-mobile-alt me-1"></i> IMEI
+              </label>
+              {{ form.imei }}
+              {% if form.imei.errors %}
+                <div class="text-danger small">{{ form.imei.errors }}</div>
+              {% endif %}
+            </div>
+            <div class="col-md-2">
+              <label for="numero_serial" class="form-label">
+                <i class="bi bi-tags me-1"></i> Número Serial
+              </label>
+              {{ form.numero_serial }}
+              {% if form.numero_serial.errors %}
+                <div class="text-danger small">{{ form.numero_serial.errors }}</div>
+              {% endif %}
+            </div>
+
+            <div class="col-md-2">
+              <label for="status_ativo" class="form-label">
+                <i class="bi bi-check-circle-fill me-1"></i> Status Ativo
+              </label>
+              {{ form.status_ativo }}
+              {% if form.status_ativo.errors %}
+                <div class="text-danger small">{{ form.status_ativo.errors }}</div>
+              {% endif %}
+            </div>
+
+          </div>
+        </div>        
+
+        <!-- Botões -->
+        <div class="d-flex justify-content-end gap-2 mt-4">
+          <a href="{% url 'listar_movimentacoes' %}" class="btn btn-outline-secondary">
+              <i class="bi bi-arrow-left"></i> Voltar
+          </a>
+          <button type="submit" class="btn btn-warning">
+              <i class="bi bi-check-circle"></i> Salvar Alterações
+          </button>
+      </div>
+
+
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+    const codigoProduto = document.getElementById("id_codigo_produto");
+    const quantidade = document.getElementById("id_quantidade");
+    const numeroSerial = document.getElementById("id_numero_serial");
+    const imei = document.getElementById("id_imei");
+    const categoria = document.getElementById("id_categoria"); // Corrigido: categoria estava indefinida
+
+    // Desabilita campos e cria inputs ocultos para envio
+    function disableAndCreateHidden(field) {
+      if (field) {
+        const hiddenInput = document.createElement("input");
+        hiddenInput.type = "hidden";
+        hiddenInput.name = field.name;
+        hiddenInput.value = field.value;
+        field.closest('form').appendChild(hiddenInput);
+        field.setAttribute("disabled", "true");
+      }
+    }
+
+    disableAndCreateHidden(codigoProduto);
+    disableAndCreateHidden(categoria);
+    disableAndCreateHidden(quantidade);
+    disableAndCreateHidden(numeroSerial);
+    disableAndCreateHidden(imei);
+  });
+
+  // JQuery para atualização do nome do produto
+  const selectCodigoProduto = $("#id_codigo_produto");
+  const inputNomeProduto = $("#produto_nome");
+
+  function atualizarNomeProduto(produtoId) {
+    if (produtoId) {
+      fetch(`/movimento/get-nome-produto/?id=${produtoId}`)
+        .then(response => response.json())
+        .then(data => {
+          inputNomeProduto.val(data.nome || 'Nome não encontrado');
+        })
+        .catch(error => {
+          console.error("Erro ao buscar nome do produto:", error);
+          inputNomeProduto.val('Erro ao buscar nome');
+        });
+    } else {
+      inputNomeProduto.val('');
+    }
+  }
+
+  // Atualiza nome do produto ao carregar a página (modo edição)
+  $(document).ready(function() {
+    const produtoIdInicial = selectCodigoProduto.val();
+    atualizarNomeProduto(produtoIdInicial);
+
+    // Atualiza nome ao mudar o select (modo criação)
+    selectCodigoProduto.on('change', function() {
+      const produtoId = $(this).val();
+      atualizarNomeProduto(produtoId);
+    });
+  });
+</script>
+
+
+{% endblock %}

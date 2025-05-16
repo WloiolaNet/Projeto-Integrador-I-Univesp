@@ -1,0 +1,46 @@
+{% extends 'base_generic.html' %}
+
+{% block content %}
+<div class="container mt-5 d-flex justify-content-center">
+  <div class="card shadow p-4 text-center" style="max-width: 600px; width: 100%;">
+    <div class="card-body">
+      <div class="mb-3">
+        <i class="bi bi-shield-lock text-danger" style="font-size: 3rem;"></i>
+      </div>
+      <h1 class="text-danger">Acesso Negado (403)</h1>
+      <p class="lead">Você não tem permissão para acessar esta página.</p>
+
+      <button class="btn btn-outline-primary mt-3" onclick="goBack()">
+        <i class="bi bi-arrow-left-circle"></i> Voltar para o módulo correto
+      </button>     
+    </div>
+  </div>
+</div>
+<script>
+  function goBack() {
+    // Verifica o histórico de navegação
+    if (document.referrer.includes('/produto/categoria-produto/')) {
+      window.location.href = '{% url "categoria_produto_listar" %}';
+    } else if (document.referrer.includes('/produto/localizacao-produto/')) {
+      window.location.href = '{% url "localizacao_produto_listar" %}';
+    } else if (document.referrer.includes('/produto/fichatecnica-produto/')) {
+      window.location.href = '{% url "fichatecnica_produto_listar" %}';
+    } else if (document.referrer.includes('/relatorio/produtos/')) {
+      window.location.href = '{% url "relatorio_produtos" %}';
+    } else if (document.referrer.includes('/relatorio/log-produtos/')) {
+      window.location.href = '{% url "relatorio_log_produtos" %}';
+    } else if (document.referrer.includes('/grupo/')) {
+      window.location.href = '{% url "listar_grupos" %}';
+    } else if (document.referrer.includes('/usuario/')) {
+      window.location.href = '{% url "listar_usuarios" %}';
+    } else if (document.referrer.includes('/permissao/')) {
+      window.location.href = '{% url "listar_permissoes" %}';
+    } else if (document.referrer.includes('/produto/')) {
+      window.location.href = '{% url "listar_produtos" %}';
+    } else {
+      window.history.back();
+    }
+  }
+</script>
+{% endblock %}
+

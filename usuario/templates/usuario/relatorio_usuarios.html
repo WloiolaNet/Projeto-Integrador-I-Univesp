@@ -1,0 +1,101 @@
+{% extends 'base_generic.html' %}
+{% load widget_tweaks %}
+
+{# ============================================ #
+  Autor: Wilton Loiola
+  Empresa: Projeto Integrador I
+  Módulo: Cadastro de usuario
+  Criação: 13/05/2025
+  Última Modificação:Relatorio de usuario
+  Status: Em produção
+# ============================================ #}
+
+{% block content %}
+<main>
+    <div class="container mt-5">
+        <!-- Exibição do nome de usuário logado -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-body d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0 text-muted" style="font-size: 0.875rem;"><i class="bi bi-person-circle me-2"></i>Usuário logado:</h5>
+                <span class="badge bg-primary" style="font-size: 0.875rem; font-weight: 300;">{{ user.username }} ({{ user.first_name }} {{ user.last_name }})</span>
+            </div>
+        </div>
+        <div class="card shadow-lg rounded-4border-0"> 
+            <div class="card-header bg-primary text-white d-flex align-items-center justify-content-center gap-2 py-3 rounded-top">
+                <h2 class="mb-0"><i class="bi bi-clock-history me-2"></i> Relatório de Usuários</h2>
+            </div>
+            <div class="card-body p-4">
+                <form method="get" action="" class="row g-3 mb-4 d-flex align-items-end flex-wrap">
+                    <div class="col-md-4"> 
+                        <label for="username" class="form-label"><i class="bi bi-person-fill me-1"></i>Usuario:</label>
+                        <input type="text" name="username" value="{{ username }}" class="form-control w-100 me-2">
+                    </div>
+                    
+                    
+                    <div class="col-md-2 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary w-75">
+                            <i class="bi bi-funnel-fill me-2"></i>Filtrar
+                        </button>
+                    </div>                     
+                </form>
+
+                <div class="table-responsive">
+                    <table class="table table-bordered table-striped">
+                        <thead class="table-dark">
+                            <tr>
+                                <th><i class="bi bi-upc-scan me-1"></i> Usuário</th>
+                                <th><i class="bi bi-card-text me-1"></i> Nome</th>
+                                <th><i class="bi bi-award me-1"></i> Sobrenome</th>
+                                <th><i class="bi bi-gear me-1"></i> E-mail</th>
+                                <th><i class="bi bi-box me-1"></i> Cargo</th>                              
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for usuario in usuarios %}
+                                <tr>
+                                    <td>{{ usuario.username }}</td>
+                                    <td>{{ usuario.first_name }}</td>
+                                    <td>{{ usuario.last_name }}</td>
+                                    <td>{{ usuario.email }}</td>
+                                    <td>{{ usuario.cargo }}</td>                                                                      
+                                </tr>
+                            {% empty %}
+                                <tr>
+                                    <td colspan="4" class="text-center text-muted">Nenhuma alteração encontrada.</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                 <!-- Paginação -->
+                 <nav class="mt-4">
+                    <ul class="pagination justify-content-center">
+                    {% if usuarios.has_previous %}
+                        <li class="page-item">
+                        <a class="page-link" href="?busca={{ busca }}&page=1" aria-label="Primeira página"><i class="bi bi-chevron-left"></i>Primeira</a>
+                        </li>
+                        <li class="page-item">
+                        <a class="page-link" href="?busca={{ busca }}&page={{ usuarios.previous_page_number }}" aria-label="Página anterior"><i class="bi bi-arrow-left-circle"></i>Anterior</a>
+                        </li>
+                    {% endif %}
+
+                    <li class="page-item disabled">
+                        <span class="page-link">Página {{ usuarios.number }} de {{ usuarios.paginator.num_pages }}</span>
+                    </li>
+
+                    {% if usuarios.has_next %}
+                        <li class="page-item">
+                        <a class="page-link" href="?busca={{ busca }}&page={{ usuarios.next_page_number }}" aria-label="Próxima página">Próxima<i class="bi bi-arrow-right-circle"></i></a>
+                        </li>
+                        <li class="page-item">
+                        <a class="page-link" href="?busca={{ busca }}&page={{ usuarios.paginator.num_pages }}" aria-label="Última página">Última<i class="bi bi-chevron-right"></i></a>
+                        </li>
+                    {% endif %}
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </div>
+</main>
+{% endblock %}
+
