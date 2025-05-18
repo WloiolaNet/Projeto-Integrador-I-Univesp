@@ -58,6 +58,7 @@ INSTALLED_APPS = [
     'historico',
     'dal',
     'dal_select2',
+    'django_filters',
    
     
 ]

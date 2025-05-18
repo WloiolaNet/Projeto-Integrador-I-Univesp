@@ -20,5 +20,7 @@ urlpatterns = [
     path('excluir_movimentacao_ativo/<int:id>/', views.excluir_movimentacao_ativo, name='excluir_movimentacao_ativo'),
     path('consultar_movimentacao_ativo/', views.listar_movimentacoes_ativo, name='listar_movimentacoes_ativo'),
     path('get-dados-produto/', views.get_dados_produto_por_ativo, name='get_dados_produto'),
+    path('relatorio/movimentacoes/', views.relatorio_movimentacao_view, name='relatorio_movimentacao_view'),
+    path('relatorio/log-movimentacao/', views.relatorio_log_movimentacao, name='relatorio_log_movimentacao'),
     
 ]

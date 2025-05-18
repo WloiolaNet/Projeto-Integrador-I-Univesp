@@ -17,6 +17,7 @@ from django.utils import timezone
 from historico.models import Historico
 from datetime import datetime  # Importação do módulo datetime padrão
 from django.db.models import Max
+import re
 
 
 
@@ -404,10 +405,6 @@ def fichatecnica_produto_listar(request):
     return render(request, 'produto/fichatecnica_produto_listar.html', context)
 
 
-
-
-
-
 @login_required
 @permission_required('produto.view_produto')
 def consultar_produto(request, id):
@@ -520,12 +517,56 @@ def relatorio_log_produtos(request):
     # Lista de usuários únicos para o select
     usuarios = Historico.objects.filter(modelo="Produto").values_list('alterado_por__username', flat=True).distinct()
 
+ # Dicionário com traduções dos campos
+    traducao_campos = {
+        'codigo_produto': '<strong>Código Produto</strong>',
+        'nome': '<strong>Descrição</strong>',
+        'marca': '<strong>Marca</strong>',
+        'modelo': '<strong>Modelo</strong>',
+        'localizacao': '<strong>Localização</strong>',
+        'categoria': '<strong>Categoria</strong>',
+        'data_aquisicao': '<strong>Data Aquisição</strong>',
+        'preco': '<strong>Preço</strong>',
+        'status': '<strong>Status</strong>',
+        'condicao' : '<strong>Estado Produto</strong>',
+        'imagem' : '<strong>Caminho da Imagem</strong>',
+        'fichatecnica' : '<strong>Ficha Tecnica</strong>',
+        'estoque_atual' : '<strong>Estoque Atual</strong>',
+        # Adicione mais conforme necessário
+    }
+
+
     # Limpeza de dados (removendo aspas e chaves de campos JSON se for necessário)
     for log in logs_produtos:
         dados_alteracao = log.dados
         if isinstance(dados_alteracao, str):
             dados_alteracao = dados_alteracao.replace('"', '').replace('{', '').replace('}', '')
-        log.dados = dados_alteracao
+       
+
+         # Traduz os campos
+        for campo_en, campo_pt in traducao_campos.items():
+            dados_alteracao = re.sub(rf'\b{campo_en}\b', campo_pt, dados_alteracao)        
+         
+
+        data_pattern = r'\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:\+|-)\d{2}:\d{2}'
+
+
+
+        def formatar_data(match):
+            data_iso = match.group()                       
+                          
+                        # Converte direto para datetime aware (com timezone)
+            data_aware = datetime.fromisoformat(data_iso)
+                        
+                        # Converte para horário local
+            data_local = timezone.localtime(data_aware)
+                        
+            return data_local.strftime('%d/%m/%Y %H:%M:%S')
+
+                    # Substitui as datas que atendem à condição (com milissegundos)
+        dados_alteracao_formatado = re.sub(data_pattern, formatar_data, dados_alteracao)
+
+        log.dados = dados_alteracao_formatado
 
     # Paginação: 15 itens por página
     paginator = Paginator(logs_produtos, 15)

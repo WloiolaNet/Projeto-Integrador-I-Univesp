@@ -57,7 +57,7 @@ class Produto(models.Model):
     modelo = models.CharField(max_length=100)
     localizacao = models.ForeignKey(LocalizacaoProduto, on_delete=models.SET_NULL, null=True, blank=True)
     categoria = models.ForeignKey(CategoriaProduto,on_delete=models.SET_NULL, null=True, blank=True)
-    data_aquisicao = models.DateField(default=timezone.now)
+    data_aquisicao = models.DateTimeField(default=timezone.now)
     preco = models.DecimalField(max_digits=10, decimal_places=2)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='novo')
     condicao = models.CharField(max_length=20, choices=CONDICAO_CHOICES, default='ativo')
