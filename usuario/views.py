@@ -196,19 +196,14 @@ def relatorio_log_usuarios(request):
 
 
                 def formatar_data(match):
-                        data_iso = match.group()                       
-                          
-                        # Converte direto para datetime aware (com timezone)
-                        data_aware = datetime.fromisoformat(data_iso)
+                        data_iso = match.group()
                         
-                        # Converte para horário local
-                        data_local = timezone.localtime(data_aware)
-                        
-                        return data_local.strftime('%d/%m/%Y %H:%M:%S')
+                         # Remove a parte do fuso horário (se necessário) e converte a data para o formato desejado
+                        data = datetime.fromisoformat(data_iso.split('+')[0])  # Remove o fuso horário para formatação
+                        return data.strftime('%d/%m/%Y %H:%M:%S')  # Formato desejado
 
                     # Substitui as datas que atendem à condição (com milissegundos)
                 dados_alteracao_formatado = re.sub(data_pattern, formatar_data, dados_alteracao)
-
 
 
             log.dados = dados_alteracao_formatado

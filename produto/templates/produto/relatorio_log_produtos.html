@@ -16,11 +16,11 @@
         <div class="card shadow-sm mb-4">
             <div class="card-body d-flex justify-content-between align-items-center">
                 <h5 class="card-title mb-0 text-muted" style="font-size: 0.875rem;"><i class="bi bi-person-circle me-2"></i>Usuário logado:</h5>
-                <span class="badge" style="font-size: 0.875rem; font-weight: 300;background-color:#062738;">{{ user.username }} ({{ user.first_name }} {{ user.last_name }})</span>
+                <span class="badge bg-primary" style="font-size: 0.875rem; font-weight: 300;">{{ user.username }} ({{ user.first_name }} {{ user.last_name }})</span>
             </div>
         </div>
         <div class="card shadow-lg border-0"> 
-            <div class="card-header text-white d-flex align-items-center justify-content-center gap-2 py-3 rounded-top" style="background-color:#062738;">
+            <div class="card-header bg-primary text-white d-flex align-items-center justify-content-center gap-2 py-3 rounded-top">
                 <h2 class="mb-0"><i class="bi-list-check me-2"></i> Relatório de Log de Produtos</h2>
             </div>
             <div class="card-body p-4">
@@ -65,7 +65,7 @@
                     </div>
                     
                     <div class="col-md-2 d-flex align-items-end">
-                        <button type="submit" class="btn w-75" style="background-color:#062738; color:white">
+                        <button type="submit" class="btn btn-primary w-75">
                             <i class="bi bi-funnel-fill me-2"></i>Filtrar
                         </button>
                     </div>
@@ -73,7 +73,7 @@
                 
                 <div class="table-responsive">
                     <table class="table table-bordered table-striped">
-                        <thead class="table-primary">
+                        <thead class="table-dark">
                             <tr>
                                 <th style="width: 180px;">
                                     <i class="bi bi-calendar3 me-1"></i> Data da Alteração
@@ -96,7 +96,7 @@
                                     <td>{{ log.data_alteracao|date:"d/m/Y H:i" }}</td>
                                     <td>{{ log.tipo_alteracao }}</td>
                                     <td>{{ log.alterado_por }}</td>
-                                    <td>{{ log.dados |safe }}</td>
+                                    <td>{{ log.dados }}</td>
                                 </tr>
                             {% empty %}
                                 <tr>
