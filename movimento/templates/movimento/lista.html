@@ -5,19 +5,19 @@
   <div class="card shadow-sm mb-4">
     <div class="card-body d-flex justify-content-between align-items-center">
       <h5 class="card-title mb-0 text-muted" style="font-size: 0.875rem;"><i class="bi bi-person-circle me-2"></i>Usuário logado:</h5>
-      <span class="badge bg-primary" style="font-size: 0.875rem; font-weight: 300;">{{ user.username }} ({{ user.first_name }} {{ user.last_name }})</span>
+      <span class="badge" style="font-size: 0.875rem; font-weight: 300;background-color:#062738;">{{ user.username }} ({{ user.first_name }} {{ user.last_name }})</span>
     </div>
   </div>
   <div class="card">
-    <div class="card-header bg-primary text-white d-flex align-items-center justify-content-center gap-2 py-3 rounded-top">
+    <div class="card-header text-white d-flex align-items-center justify-content-center gap-2 py-3 rounded-top" style="background-color:#062738;">
       <i class="bi bi-file-earmark-plus fs-3"></i>
-      <h2 class="mb-0">Controle de ativo</h2>
+      <h2 class="mb-0">Cadastro do ativo</h2>
     </div>
     <div class="card-body">
       <!-- Filtro de busca -->
       <form method="GET" class="mb-4 d-flex justify-content-center">
         <input type="text" name="busca" placeholder="Buscar por ativo (nome ou descrição)..." value="{{ busca }}" class="form-control w-50 me-2">
-        <button type="submit" class="btn btn-primary">Filtrar</button>
+        <button type="submit" class="btn" style="background-color:#062738; color: white">Filtrar</button>
       </form>
 
       <!-- Botão adicionar movimentação -->
@@ -30,7 +30,7 @@
       <!-- Tabela -->
       <div class="table-responsive">
         <table class="table table-bordered table-striped">
-          <thead class="table-dark text-center">
+          <thead class="table-primary text-center">
             <tr>
               <th>Código Ativo</th>
               <th>Código Produto</th>

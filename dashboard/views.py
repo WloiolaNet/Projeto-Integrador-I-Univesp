@@ -20,7 +20,7 @@ from django.utils.timezone import now
 from datetime import timedelta
 import calendar
 from django.db.models import F
-
+from django.db.models import OuterRef, Subquery, Max
 
 def dashboard_view(request):
     hoje = now().date()
@@ -43,28 +43,23 @@ def dashboard_view(request):
         total_movimentacoes=Count('movimentacaoativo')
     ).order_by('-total_movimentacoes')[:5]
 
-    # Dados para gráficos
     entradas_json = {"total": entradas}
     saidas_json = {"total": saidas}
     manutencao_json = {"total": manutencao}
 
-
-    # Movimentações por categoria a partir da tabela MovimentacaoAtivo
     movimentacoes_por_categoria = MovimentacaoAtivo.objects \
-    .select_related('ativo__codigo_produto__categoria') \
-    .annotate(
-        categoria_nome=F('ativo__codigo_produto__categoria__nome')
-    ) \
-    .values('categoria_nome') \
-    .annotate(movimentacoes=Count('id')) \
-    .order_by('categoria_nome')
+        .select_related('ativo__codigo_produto__categoria') \
+        .annotate(categoria_nome=F('ativo__codigo_produto__categoria__nome')) \
+        .values('categoria_nome') \
+        .annotate(movimentacoes=Count('id')) \
+        .order_by('categoria_nome')
 
     movimentacoes_por_categoria_json = [
         {'nome': mov['categoria_nome'], 'total_movimentacoes': mov['movimentacoes']}
         for mov in movimentacoes_por_categoria
     ]
 
-    # Tendência de ativos por mês nos últimos 6 meses
+    # Tendência dos últimos 6 meses
     tendencia_json = {}
     for ativo in Ativo.objects.all():
         dados = []
@@ -79,8 +74,14 @@ def dashboard_view(request):
             dados.append({'mes': mes, 'movimentacoes': count})
         tendencia_json[ativo.codigo_produto.nome] = dados
 
-    ativos_disponiveis = total_ativos - saidas - manutencao
+    # CORREÇÃO PRINCIPAL: ativos disponíveis (última movimentação = ativo)
+    ultimas_movimentacoes = MovimentacaoAtivo.objects.filter(
+        ativo=OuterRef('pk')
+    ).order_by('-data')
 
+    ativos_disponiveis = Ativo.objects.annotate(
+        ultimo_status=Subquery(ultimas_movimentacoes.values('status_novo')[:1])
+    ).filter(ultimo_status='ativo').count()
 
     context = {
         'total_ativos': total_ativos,
@@ -90,7 +91,7 @@ def dashboard_view(request):
         'entradas_passado': entradas_passado,
         'saidas_passado': saidas_passado,
         'manutencao_passado': manutencao_passado,
-        'ativos_disponiveis': ativos_disponiveis, 
+        'ativos_disponiveis': ativos_disponiveis,
         'ativos_mais_utilizados': ativos_mais_utilizados,
         'entradas_json': entradas_json,
         'saidas_json': saidas_json,

@@ -25,7 +25,15 @@ import logging
 from django.db import transaction
 from django.contrib.auth import get_user_model
 User = get_user_model()
-
+from .filters import MovimentacaoAtivoFilter
+from datetime import datetime, time
+from django.template.loader import get_template
+from django.http import HttpResponse
+import tempfile
+from historico.models import Historico
+from datetime import datetime  # Importação do módulo datetime padrão
+from django.utils import timezone
+import re
 
 
 
@@ -71,7 +79,7 @@ def listar_movimentacoes_ativo(request):
     })
 
 
-
+@login_required
 def obter_localizacao_ativo(request):
     produto_id = request.GET.get('produto_id')
     if produto_id:
@@ -94,7 +102,7 @@ def buscar_localizacao(request):
         except Produto.DoesNotExist:
             return JsonResponse({'localizacao': 'Não encontrada'})
 
-
+@login_required
 def criar_movimentacao_view(request):
     produtos = Produto.objects.all()
     return render(request, 'criar.html', {'produtos': produtos})
@@ -135,7 +143,7 @@ def criar_movimentacao(request):
 
 
 
-                                    
+@login_required                                   
 def registrar_movimentacao_logica_old(ativo, status_novo, local_anterior, local_novo, observacao, usuario_responsavel, usuario_final):
     print(f"local_novo: {local_novo}")
 
@@ -363,7 +371,7 @@ def editar_movimentacao_ativo(request, id):
 
     return render(request, 'movimento/movimento_ativo_editar.html', {'form': form})
 
-
+@login_required
 def excluir_movimentacao(request, id):
     movimentacao = get_object_or_404(Ativo, id=id)
 
@@ -373,6 +381,7 @@ def excluir_movimentacao(request, id):
 
     return render(request, 'movimento/excluir.html', {'movimentacao': movimentacao})
 
+@login_required
 def excluir_movimentacao_ativo(request, id):
     movimentacao_ativo = get_object_or_404(Ativo, id=id)
 
@@ -383,7 +392,7 @@ def excluir_movimentacao_ativo(request, id):
     return render(request, 'movimento/movimento_ativo_excluir.html', {'movimentacao': movimentacao_ativo})
 
 
-
+@login_required
 def buscar_ativos(request):
     term = request.GET.get('term', '')
     
@@ -412,7 +421,7 @@ class ProdutoAutocomplete(autocomplete.Select2QuerySetView):
         return qs
 
 
-
+@login_required
 def get_nome_produto(request):
     # Verifique se o 'id' foi passado como parâmetro na URL
     produto_id = request.GET.get('id')
@@ -432,3 +441,181 @@ def get_nome_produto(request):
     except Exception as e:
         # Captura qualquer outra exceção e retorna um erro genérico
         return JsonResponse({'error': str(e)}, status=500)
+    
+
+@login_required
+def relatorio_movimentacao_view(request):
+    # Copia os parâmetros GET para poder modificar
+    data = request.GET.copy()
+    
+    # Converter data__gte (Data Inicial) de dd/mm/yyyy para yyyy-mm-dd
+    data_gte = data.get('data__gte')
+    if data_gte:
+        try:
+            dt = datetime.strptime(data_gte, '%d/%m/%Y')
+            data['data__gte'] = dt.date().isoformat()
+        except ValueError:
+            pass  # Pode colocar um log ou mensagem se quiser
+    
+    # Converter data__lte (Data Final) de dd/mm/yyyy para yyyy-mm-dd + 23:59:59
+    data_lte = data.get('data__lte')
+    if data_lte:
+        try:
+            dt = datetime.strptime(data_lte, '%d/%m/%Y')
+            dt = datetime.combine(dt.date(), time.max)  # final do dia
+            data['data__lte'] = dt.isoformat()
+        except ValueError:
+            pass
+    
+    filtro = MovimentacaoAtivoFilter(data, queryset=MovimentacaoAtivo.objects.select_related('ativo', 'local_anterior', 'local_novo'))
+    return render(request, 'movimento/relatorio_movimentacao.html', {'filter': filtro, 'request': request})
+
+
+
+@login_required
+@permission_required('movimento.view_movimento', raise_exception=True)
+def relatorio_log_movimentacao(request):
+    # Filtra os registros de log para o modelo "usuario"
+    logs_usuarios = Historico.objects.filter(modelo="MovimentacaoAtivo").order_by('-data_alteracao')
+    tipos_alteracao = Historico.objects.values_list('tipo_alteracao', flat=True).distinct()
+    tipos_alteracao = sorted(set(tipos_alteracao))  # Garante ordenação e remove duplicados
+   
+
+    # Filtros de data e hora
+    data_inicio = request.GET.get('data_inicio', None)
+    hora_inicio = request.GET.get('hora_inicio', None)
+    data_fim = request.GET.get('data_fim', None)
+    hora_fim = request.GET.get('hora_fim', None)
+
+    if data_inicio:
+        if hora_inicio:
+            # Se hora_inicio for fornecida, combina com a data
+            data_inicio = datetime.strptime(data_inicio + ' ' + hora_inicio, '%Y-%m-%d %H:%M')
+        else:
+            # Caso contrário, usa apenas a data
+            data_inicio = datetime.strptime(data_inicio, '%Y-%m-%d')
+
+        # Torna a data "aware" se o fuso horário estiver ativado
+        data_inicio = timezone.make_aware(data_inicio, timezone.get_current_timezone())  # Torna a data consciente do fuso horário
+        logs_usuarios = logs_usuarios.filter(data_alteracao__gte=data_inicio)
+
+    if data_fim:
+        if hora_fim:
+            # Se hora_fim for fornecida, combina com a data
+            data_fim = datetime.strptime(data_fim + ' ' + hora_fim, '%Y-%m-%d %H:%M')
+        else:
+            # Caso contrário, usa apenas a data
+            data_fim = datetime.strptime(data_fim, '%Y-%m-%d')
+
+        # Torna a data "aware" se o fuso horário estiver ativado
+        data_fim = timezone.make_aware(data_fim, timezone.get_current_timezone())  # Torna a data consciente do fuso horário
+        logs_usuarios = logs_usuarios.filter(data_alteracao__lte=data_fim)
+    elif data_inicio and data_fim:
+        # Converte as strings para datetime e faz a conversão para timezone-aware
+        data_inicio = datetime.strptime(data_inicio + ' ' + hora_inicio, '%Y-%m-%d %H:%M')
+        data_fim = datetime.strptime(data_fim + ' ' + hora_fim, '%Y-%m-%d %H:%M')
+        data_inicio = timezone.make_aware(data_inicio, timezone.get_current_timezone())  # Torna a data consciente do fuso horário
+        data_fim = timezone.make_aware(data_fim, timezone.get_current_timezone())  # Torna a data consciente do fuso horário
+        logs_usuarios = logs_usuarios.filter(data_alteracao__range=[data_inicio, data_fim])
+
+    # Filtro de busca por nome do produto
+    valor_busca = ''
+    resultado_busca = request.GET.get('busca', None)
+    if resultado_busca:
+        valor_busca = resultado_busca.strip()
+        if valor_busca:
+            logs_usuarios = logs_usuarios.filter(nome_usuario__icontains=valor_busca)
+
+    # Filtros adicionais: tipo de alteração e alterado por
+    alterado_por = request.GET.get('alterado_por', '')
+    tipo_alteracao = request.GET.get('tipo_alteracao', '')
+
+    if alterado_por:
+        logs_usuarios = logs_usuarios.filter(alterado_por__username=alterado_por)
+    if tipo_alteracao:
+        logs_usuarios = logs_usuarios.filter(tipo_alteracao=tipo_alteracao)
+
+    # Lista de usuários únicos para o select
+    usuarios = Historico.objects.filter(modelo="Produto").values_list('alterado_por__username', flat=True).distinct()
+
+
+    # Dicionário com traduções dos campos
+    traducao_campos = {
+        'ativo': '<strong>Código do Ativo</strong>',
+        'data': '<strong>Data da Alteração</strong>',
+        'status_anterior': '<strong>Status Anterior</strong>',
+        'status_novo': '<strong>Status Novo</strong>',
+        'local_anterior': '<strong>Local Anterior</strong>',
+        'local_novo': '<strong>Local Atual</strong>',
+        'usuario_responsavel': '<strong>Usuário responsavel</strong>',
+        'usuario_inicio': '<strong>Usuário Anterior</strong>',
+        'usuario_final': '<strong>Usuário Atual</strong>',
+        'observacao' : '<strong>Observação</strong>',
+        # Adicione mais conforme necessário
+    }
+    # Limpeza de dados (removendo aspas e chaves de campos JSON se for necessário)
+    if logs_usuarios.exists():  # Verifica se logs_usuarios não está vazio
+        for log in logs_usuarios:
+            dados_alteracao = log.dados
+            if isinstance(dados_alteracao, str):
+                dados_alteracao = dados_alteracao.replace('"', '').replace('{', '').replace('}', '')
+                 # Remover a palavra "password" (ou outras palavras associadas à senha)
+               # Expressão regular para remover 'password:' e o conteúdo até a vírgula
+                dados_alteracao = re.sub(r'password:\s*[^,]*,', '', dados_alteracao)
+
+                # Traduz os campos
+                for campo_en, campo_pt in traducao_campos.items():
+                    dados_alteracao = re.sub(rf'\b{campo_en}\b', campo_pt, dados_alteracao)
+                
+                # Expressões regulares para encontrar as datas
+                data_pattern_1 = r'\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{6}\+\d{2}:\d{2}'  # Com milissegundos
+                data_pattern_2 = r'\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\+\d{2}:\d{2}'  # Sem milissegundos
+
+                # Combina as duas expressões regulares
+                data_pattern = f'({data_pattern_1}|{data_pattern_2})'
+
+
+                def formatar_data(match):
+                        data_iso = match.group()                       
+                          
+                        # Converte direto para datetime aware (com timezone)
+                        data_aware = datetime.fromisoformat(data_iso)
+                        
+                        # Converte para horário local
+                        data_local = timezone.localtime(data_aware)
+                        
+                        return data_local.strftime('%d/%m/%Y %H:%M:%S')
+
+                    # Substitui as datas que atendem à condição (com milissegundos)
+                dados_alteracao_formatado = re.sub(data_pattern, formatar_data, dados_alteracao)
+                log.dados = dados_alteracao_formatado
+
+   
+
+    # Paginação: 15 itens por página
+    paginator = Paginator(logs_usuarios, 15)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    # Contexto enviado ao template
+    context = {
+        'logs_usuarios': page_obj,
+        'data_inicio': data_inicio,
+        'data_fim': data_fim,
+        'hora_inicio': hora_inicio,
+        'hora_fim': hora_fim,
+        'valor_busca': valor_busca,
+        'alterado_por': alterado_por,
+        'tipos_alteracao': tipos_alteracao,
+        'tipo_alteracao': tipo_alteracao,
+        'usuarios': usuarios,
+    }
+
+    return render(request, 'movimento/relatorio_log_movimentacao.html', context)
+
+def filtrar_informacoes_movimento(dados):
+    # Remover ou ocultar informações sensíveis, como senha
+    # Aqui você pode definir o que remover, como o campo 'password' por exemplo.
+    if 'password' in dados:
+        dados['password'] = '**oculto**'
+    return dados

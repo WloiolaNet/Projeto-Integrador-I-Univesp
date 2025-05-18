@@ -3,6 +3,10 @@ from .models import Historico
 import json
 import logging
 from django.utils import timezone
+from django.utils.timezone import localtime
+from django.utils.timezone import make_naive, get_current_timezone
+
+
 
 logger = logging.getLogger(__name__)
 
